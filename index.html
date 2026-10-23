@@ -1,23 +1,22 @@
 <!doctype html>
-<html lang="en">
+<html lang="hi">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#111827">
   <title>MyRadio</title>
   <style>
-    :root { color-scheme: dark; --bg:#0b1020; --panel:#151c2e; --text:#f5f7fb; --muted:#aeb8ca; --accent:#8b9cff; }
+    :root { color-scheme: dark; --bg:#0b1020; --panel:#151c2e; --text:#f5f7fb; --muted:#c8d2f0; }
     * { box-sizing: border-box; }
-    body { margin:0; min-height:100vh; display:grid; place-items:center; padding:24px; font-family:system-ui,-apple-system,Segoe UI,sans-serif; color:var(--text); background:radial-gradient(ellipse at top,#202a49 0%,var(--bg) 58%); }
-    main { width:min(100%,520px); text-align:center; background:rgba(21,28,46,.92); border:1px solid #2b3650; border-radius:28px; padding:36px 28px 30px; box-shadow:0 24px 70px #0005; }
+    body { margin:0; min-height:100vh; display:grid; place-items:center; padding:24px; font-family:system-ui,-apple-system,"Noto Sans Devanagari","Mangal",sans-serif; color:var(--text); background:radial-gradient(ellipse at top,#202a49 0%,var(--bg) 58%); }
+    main { width:min(100%,520px); text-align:center; background:rgba(21,28,46,.92); border:1px solid #2b3650; border-radius:28px; padding:36px 28px 34px; box-shadow:0 24px 70px #0005; }
     .mark { width:76px; height:76px; margin:0 auto 20px; display:grid; place-items:center; border-radius:24px; background:linear-gradient(135deg,#8b9cff,#b48bff); color:#10162a; }
     h1 { margin:0; font-size:clamp(2rem,7vw,2.7rem); letter-spacing:-.04em; }
-    .tagline { margin:8px 0 30px; color:var(--muted); }
-    .status { min-height:26px; color:#d9dff0; font-size:.95rem; }
-    .song { margin:12px 0 26px; font-size:1.12rem; font-weight:650; overflow-wrap:anywhere; }
-    .note { margin:0; color:var(--muted); font-size:.84rem; line-height:1.6; }
-    .pulse { display:inline-block; width:8px; height:8px; margin-right:8px; border-radius:50%; background:#8b9cff; }
-    footer { margin-top:26px; color:#7f8aa3; font-size:.78rem; }
+    .subtitle { margin:18px 0 7px; font-size:1.28rem; font-weight:700; line-height:1.7; }
+    .tagline { margin:0 0 34px; color:var(--muted); font-size:1rem; line-height:1.7; }
+    .wait { margin:0; color:#fff; font-size:1.08rem; font-weight:650; line-height:1.7; }
+    .pulse { display:inline-block; width:8px; height:8px; margin-right:9px; border-radius:50%; background:#a18bff; vertical-align:middle; }
+    @media (max-width:420px) { main { padding:30px 20px; } .subtitle { font-size:1.15rem; } }
   </style>
 </head>
 <body>
@@ -28,11 +27,9 @@
       </svg>
     </div>
     <h1>MyRadio</h1>
-    <p class="tagline">Your music. Your moment.</p>
-    <div class="status"><span class="pulse"></span>MyRadio is being prepared</div>
-    <div class="song" id="song-title">Please wait…</div>
-    <p class="note">Automatic music playback is coming soon.<br>We’re connecting the music library securely.</p>
-    <footer>Made for music lovers</footer>
+    <div class="subtitle">मेरे पसंदीदा गाने</div>
+    <div class="tagline">संगीत का सच्चा आनंद</div>
+    <p class="wait"><span class="pulse"></span>एक मिनट रुकिए तो…</p>
   </main>
 </body>
 </html>
