@@ -133,12 +133,67 @@ function playNext() {
 }
 
 player.addEventListener("ended", playNext);
-  document.getElementById("skipButton").addEventListener("click", () => {
+  
+const playPause = document.getElementById("playPause");
+const progress = document.getElementById("progress");
+const currentTime = document.getElementById("currentTime");
+const duration = document.getElementById("duration");
+
+function formatTime(seconds) {
+  if (!Number.isFinite(seconds)) return "0:00";
+  const minutes = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${minutes}:${String(secs).padStart(2, "0")}`;
+}
+
+playPause.addEventListener("click", async () => {
+  if (player.paused) {
+    if (!player.src || player.readyState === 0) {
+      await startRadio();
+    } else {
+      try {
+        await player.play();
+      } catch (error) {
+        console.error("Play error:", error);
+      }
+    }
+  } else {
+    player.pause();
+  }
+});
+
+player.addEventListener("play", () => {
+  playPause.textContent = "Ⅱ";
+});
+
+player.addEventListener("pause", () => {
+  playPause.textContent = "▶";
+});
+
+player.addEventListener("loadedmetadata", () => {
+  duration.textContent = formatTime(player.duration);
+});
+
+player.addEventListener("timeupdate", () => {
+  currentTime.textContent = formatTime(player.currentTime);
+  if (Number.isFinite(player.duration) && player.duration > 0) {
+    progress.value = (player.currentTime / player.duration) * 100;
+  }
+});
+
+progress.addEventListener("input", () => {
+  if (Number.isFinite(player.duration) && player.duration > 0) {
+    player.currentTime = (Number(progress.value) / 100) * player.duration;
+  }
+});
+
+document.getElementById("skipButton").addEventListener("click", () => {
   if (songs.length) {
     player.pause();
     playNext();
   }
 });
+
 
 player.addEventListener("error", () => {
   console.error("Audio element error:", player.error);
