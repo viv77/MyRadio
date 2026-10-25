@@ -118,6 +118,12 @@ function playNext() {
 }
 
 player.addEventListener("ended", playNext);
+  document.getElementById("skipButton").addEventListener("click", () => {
+  if (songs.length) {
+    player.pause();
+    playNext();
+  }
+});
 
 player.addEventListener("error", () => {
   console.error("Audio element error:", player.error);
