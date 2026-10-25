@@ -39,5 +39,71 @@
   </p>
 </div>
   </main>
+  
+<script>
+const API = "https://myradio-service.vivek-thakar-nsk.workers.dev";
+const player = document.getElementById("player");
+const songTitle = document.getElementById("songTitle");
+
+let songs = [];
+let remaining = [];
+let currentSong = null;
+
+function shuffleSongs(list) {
+  const result = [...list];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+async function loadPlaylist() {
+  songTitle.textContent = "गाने लोड हो रहे हैं…";
+  try {
+    const response = await fetch(`${API}/api/files`);
+    const data = await response.json();
+
+    if (!response.ok || !data.success || !data.items?.length) {
+      throw new Error(data.error || "Playlist could not be loaded");
+    }
+
+    songs = data.items.filter(song =>
+      song.type === "file" &&
+      (song.extension || song.name.split(".").pop()).toLowerCase() === "mp3"
+    );
+
+    if (!songs.length) throw new Error("No MP3 songs found");
+
+    remaining = shuffleSongs(songs);
+    songTitle.textContent = `${songs.length} गाने तैयार हैं — Play दबाइए`;
+    player.addEventListener("play", () => {
+      if (!player.src || player.src === window.location.href) playNext();
+    });
+  } catch (error) {
+    songTitle.textContent = "गाने लोड नहीं हुए। पेज फिर खोलें।";
+    console.error("MyRadio playlist error:", error);
+  }
+}
+
+function playNext() {
+  if (!remaining.length) {
+    remaining = shuffleSongs(songs);
+  }
+
+  currentSong = remaining.pop();
+  songTitle.textContent = currentSong.name.replace(/\.mp3$/i, "");
+  player.src = `${API}/api/audio?id=${encodeURIComponent(currentSong.id)}`;
+  player.play().catch(error => {
+    songTitle.textContent = "गाना चलाने में समस्या — Play फिर दबाइए";
+    console.error("MyRadio playback error:", error);
+  });
+}
+
+player.addEventListener("ended", playNext);
+
+loadPlaylist();
+</script>
+
 </body>
 </html>
