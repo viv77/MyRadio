@@ -48,6 +48,7 @@ const songTitle = document.getElementById("songTitle");
 let songs = [];
 let remaining = [];
 let currentSong = null;
+let starting = false;
 
 function shuffleSongs(list) {
   const result = [...list];
@@ -58,32 +59,37 @@ function shuffleSongs(list) {
   return result;
 }
 
-async function loadPlaylist() {
-  songTitle.textContent = "गाने लोड हो रहे हैं…";
-  try {
-    const response = await fetch(`${API}/api/files`);
-    const data = await response.json();
+async function startRadio() {
+  if (starting) return;
+  starting = true;
 
-    if (!response.ok || !data.success || !data.items?.length) {
-      throw new Error(data.error || "Playlist could not be loaded");
+  if (!songs.length) {
+    songTitle.textContent = "गाने लोड हो रहे हैं…";
+    try {
+      const response = await fetch(`${API}/api/files`);
+      const data = await response.json();
+
+      if (!response.ok || !data.success || !data.items) {
+        throw new Error("Playlist could not be loaded");
+      }
+
+      songs = data.items.filter(song =>
+        song.type === "file" &&
+        (song.extension || song.name.split(".").pop())
+          .toLowerCase() === "mp3"
+      );
+
+      if (!songs.length) throw new Error("No MP3 files found");
+      remaining = shuffleSongs(songs);
+    } catch (error) {
+      console.error("Playlist error:", error);
+      songTitle.textContent = "गाने लोड नहीं हुए। पेज फिर खोलें।";
+      starting = false;
+      return;
     }
-
-    songs = data.items.filter(song =>
-      song.type === "file" &&
-      (song.extension || song.name.split(".").pop()).toLowerCase() === "mp3"
-    );
-
-    if (!songs.length) throw new Error("No MP3 songs found");
-
-    remaining = shuffleSongs(songs);
-    songTitle.textContent = `${songs.length} गाने तैयार हैं — Play दबाइए`;
-    player.addEventListener("play", () => {
-      if (!player.src || player.src === window.location.href) playNext();
-    });
-  } catch (error) {
-    songTitle.textContent = "गाने लोड नहीं हुए। पेज फिर खोलें।";
-    console.error("MyRadio playlist error:", error);
   }
+
+  playNext();
 }
 
 function playNext() {
@@ -94,15 +100,32 @@ function playNext() {
   currentSong = remaining.pop();
   songTitle.textContent = currentSong.name.replace(/\.mp3$/i, "");
   player.src = `${API}/api/audio?id=${encodeURIComponent(currentSong.id)}`;
-  player.play().catch(error => {
-    songTitle.textContent = "गाना चलाने में समस्या — Play फिर दबाइए";
-    console.error("MyRadio playback error:", error);
+  player.load();
+
+  player.play().then(() => {
+    starting = false;
+  }).catch(error => {
+    console.error("Playback error:", error);
+    songTitle.textContent =
+      currentSong.name.replace(/\.mp3$/i, "") +
+      " — संगीत शुरू करने के लिए Play दबाएँ";
+    starting = false;
   });
 }
 
 player.addEventListener("ended", playNext);
 
-loadPlaylist();
+player.addEventListener("error", () => {
+  console.error("Audio element error:", player.error);
+  songTitle.textContent = "गाना चलाने में समस्या हुई।";
+  starting = false;
+});
+
+player.addEventListener("play", () => {
+  starting = false;
+});
+
+startRadio();
 </script>
 
 </body>
