@@ -145,6 +145,22 @@ function playNext() {
 
 player.addEventListener("ended", playNext);
   
+let recoveryTimer = null;
+
+player.addEventListener("ended", () => {
+  if (recoveryTimer) {
+    clearTimeout(recoveryTimer);
+    recoveryTimer = null;
+  }
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && player.ended) {
+    playNext();
+  }
+});
+
+  
 if ("mediaSession" in navigator) {
   navigator.mediaSession.setActionHandler("play", () => {
     player.play().catch(error => console.error(error));
