@@ -120,6 +120,15 @@ function playNext() {
 
   currentSong = remaining.pop();
   songTitle.textContent = currentSong.name.replace(/\.mp3$/i, "");
+  
+  if ("mediaSession" in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: currentSong.name.replace(/\.mp3$/i, ""),
+      artist: "MyRadio",
+      album: "मेरे पसंदीदा गाने"
+    });
+  }
+
   player.src = `${API}/api/audio?id=${encodeURIComponent(currentSong.id)}`;
   player.load();
 
