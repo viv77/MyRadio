@@ -134,6 +134,23 @@ function playNext() {
 
 player.addEventListener("ended", playNext);
   
+if ("mediaSession" in navigator) {
+  navigator.mediaSession.setActionHandler("play", () => {
+    player.play().catch(error => console.error(error));
+  });
+
+  navigator.mediaSession.setActionHandler("pause", () => {
+    player.pause();
+  });
+
+  navigator.mediaSession.setActionHandler("nexttrack", () => {
+    if (songs.length) {
+      player.pause();
+      playNext();
+    }
+  });
+}
+
 const playPause = document.getElementById("playPause");
 const progress = document.getElementById("progress");
 const currentTime = document.getElementById("currentTime");
