@@ -73,6 +73,7 @@ let songs = [];
 let remaining = [];
 let currentSong = null;
 let starting = false;
+const queueKey = "myradio_queue_" + (accessToken || "no-token");
 
 function shuffleSongs(list) {
   const result = [...list];
@@ -104,9 +105,29 @@ async function startRadio() {
         (song.extension || song.name.split(".").pop())
           .toLowerCase() === "mp3"
       );
-
       if (!songs.length) throw new Error("No MP3 files found");
-      remaining = shuffleSongs(songs);
+const currentIds = songs.map(song => String(song.id)).sort();
+let saved = null;
+
+try {
+  saved = JSON.parse(localStorage.getItem(queueKey) || "null");
+} catch (error) {
+  saved = null;
+}
+
+if (
+  saved &&
+  Array.isArray(saved.allIds) &&
+  Array.isArray(saved.remainingIds) &&
+  JSON.stringify(saved.allIds) === JSON.stringify(currentIds)
+) {
+  const songMap = new Map(songs.map(song => [String(song.id), song]));
+  remaining = saved.remainingIds
+    .map(id => songMap.get(String(id)))
+    .filter(Boolean);
+} else {
+  remaining = shuffleSongs(songs);
+}
     } catch (error) {
       console.error("Playlist error:", error);
       songTitle.textContent = "गाने लोड नहीं हुए। पेज फिर खोलें।";
@@ -119,11 +140,18 @@ async function startRadio() {
 }
 
 function playNext() {
-  if (!remaining.length) {
-    remaining = shuffleSongs(songs);
-  }
-
+if (!remaining.length) {
+  remaining = shuffleSongs(songs);
+}
   currentSong = remaining.pop();
+  try {
+  localStorage.setItem(queueKey, JSON.stringify({
+    allIds: songs.map(song => String(song.id)).sort(),
+    remainingIds: remaining.map(song => String(song.id))
+  }));
+} catch (error) {
+  console.error("Queue could not be saved:", error);
+}
   songTitle.textContent = currentSong.name.replace(/\.mp3$/i, "");
   
   if ("mediaSession" in navigator) {
