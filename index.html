@@ -65,6 +65,7 @@
   
 <script>
 const API = "https://myradio-service.vivek-thakar-nsk.workers.dev";
+const accessToken = new URLSearchParams(window.location.search).get("access");
 const player = document.getElementById("player");
 const songTitle = document.getElementById("songTitle");
 
@@ -89,7 +90,9 @@ async function startRadio() {
   if (!songs.length) {
     songTitle.textContent = "गाने लोड हो रहे हैं…";
     try {
-      const response = await fetch(`${API}/api/files`);
+      const response = await fetch(
+  `${API}/api/files?access=${encodeURIComponent(accessToken || "")}`
+);
       const data = await response.json();
 
       if (!response.ok || !data.success || !data.items) {
@@ -131,7 +134,7 @@ function playNext() {
     });
   }
 
-  player.src = `${API}/api/audio?id=${encodeURIComponent(currentSong.id)}`;
+  player.src = `${API}/api/audio?id=${encodeURIComponent(currentSong.id)}&access=${encodeURIComponent(accessToken || "")}`;
   player.load();
 
   player.play().then(() => {
