@@ -33,7 +33,7 @@
 
 <div style="margin-top:28px">
   <div style="display:flex;align-items:center;justify-content:center;gap:24px">
-    
+
     <button id="playPause" type="button" aria-label="Play or pause"
       style="width:54px;height:54px;flex-shrink:0;border:0;border-radius:50%;background:#a18bff;color:#101626;font-size:22px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center">
       ▶
@@ -43,9 +43,14 @@
       style="width:54px;height:54px;flex-shrink:0;border:0;border-radius:50%;background:#dce5ff;color:#172554;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center">
       ⏭
     </button>
-      </div>
 
+    <button id="exitButton" type="button" aria-label="Exit"
+      style="width:54px;height:54px;flex-shrink:0;border:0;border-radius:50%;background:#dce5ff;color:#172554;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center">
+      ✕
+    </button>
 
+  </div>
+</div>
   <div style="display:flex;align-items:center;gap:10px;margin-top:22px">
     <span id="currentTime" style="font-size:12px;color:#c8d2f0">0:00</span>
     <input id="progress" type="range" min="0" max="100" value="0"
@@ -269,7 +274,18 @@ document.getElementById("skipButton").addEventListener("click", () => {
   }
 });
 
+let exitAttempted = false;
 
+document.getElementById("exitButton").addEventListener("click", () => {
+  player.pause();
+
+  if (!exitAttempted) {
+    exitAttempted = true;
+    window.close();
+  } else {
+    window.history.back();
+  }
+});
 player.addEventListener("error", () => {
   console.error("Audio element error:", player.error);
   songTitle.textContent = "गाना चलाने में समस्या हुई।";
