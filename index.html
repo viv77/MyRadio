@@ -274,19 +274,15 @@ document.getElementById("skipButton").addEventListener("click", () => {
   }
 });
 
-let exitAttempted = false;
-
 document.getElementById("exitButton").addEventListener("click", () => {
   player.pause();
+  window.close();
 
-  if (!exitAttempted) {
-    exitAttempted = true;
-    window.close();
-  } else {
+  setTimeout(() => {
     window.history.back();
-  }
+  }, 300);
 });
-player.addEventListener("error", () => {
+  player.addEventListener("error", () => {
   console.error("Audio element error:", player.error);
   songTitle.textContent = "गाना चलाने में समस्या हुई।";
   starting = false;
