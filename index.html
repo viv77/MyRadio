@@ -11,12 +11,16 @@
     body { margin:0; min-height:100vh; display:grid; place-items:center; padding:24px; font-family:system-ui,-apple-system,"Noto Sans Devanagari","Mangal",sans-serif; color:var(--text); background:radial-gradient(ellipse at top,#202a49 0%,var(--bg) 58%); }
     main { width:min(100%,520px); text-align:center; background:rgba(21,28,46,.92); border:1px solid #2b3650; border-radius:28px; padding:36px 28px 34px; box-shadow:0 24px 70px #0005; }
     .mark { width:76px; height:76px; margin:0 auto 20px; display:grid; place-items:center; border-radius:24px; background:linear-gradient(135deg,#8b9cff,#b48bff); color:#10162a; }
-    .brand-row { display:flex; align-items:center; justify-content:center; gap:14px; }
-    h1 { margin:0; font-size:clamp(2rem,7vw,2.7rem); letter-spacing:-.04em; }
-    .header-action { width:34px; height:38px; padding:5px; border:0; border-radius:9px; background:transparent; color:#f5f7fb; display:grid; place-items:center; cursor:pointer; flex:0 0 auto; }
-    .header-action svg { width:23px; height:23px; display:block; }
-    .header-action:hover { background:#ffffff12; }
+    .brand-row { position:relative; display:flex; align-items:center; justify-content:center; width:100%; min-height:48px; }
+    .brand-actions { position:absolute; left:calc((100% - 288px)/2); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; }
+    .brand-title { min-width:0; display:flex; align-items:center; justify-content:center; }
+    h1 { margin:0; font-size:clamp(2rem,7vw,2.7rem); letter-spacing:-.04em; white-space:nowrap; }
+    .header-action { width:38px; height:38px; padding:7px; border:1px solid #485574; border-radius:50%; background:#26314a; color:#f5f7fb; display:grid; place-items:center; cursor:pointer; flex:0 0 auto; }
+    .header-action svg { width:21px; height:21px; display:block; }
+    .header-action:hover { background:#34415f; }
     .header-action:focus-visible { outline:2px solid #a18bff; outline-offset:2px; }
+    .header-action:disabled { opacity:.75; cursor:wait; }
+    @media (max-width:420px) { .brand-actions { left:calc((100% - 288px)/2); gap:10px; } .header-action { width:36px; height:36px; } }
     .update-dots { display:none; gap:3px; align-items:center; justify-content:center; }
     #updateButton.is-updating svg { display:none; }
     #updateButton.is-updating .update-dots { display:flex; }
@@ -41,19 +45,21 @@
       </svg>
     </div>
     <div class="brand-row">
-      <button id="shuffleButton" class="header-action" type="button" aria-label="Shuffle remaining songs" title="Shuffle">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="m16 3 4 4-4 4"/><path d="M4 17h2.5a5 5 0 0 0 4-2l3-4a5 5 0 0 1 4-2H20"/>
-          <path d="m16 14 4 4-4 4"/><path d="M4 7h2.5a5 5 0 0 1 3.5 1.5"/>
-        </svg>
-      </button>
-      <h1>MyRadio</h1>
-      <button id="updateButton" class="header-action" type="button" aria-label="Update song list" title="Update song list">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M12 3v18"/><path d="m8 7 4-4 4 4"/><path d="m8 17 4 4 4-4"/>
-        </svg>
-        <span class="update-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
-      </button>
+      <div class="brand-actions">
+        <button id="updateButton" class="header-action" type="button" aria-label="Update song list" title="Update song list">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3v18"/><path d="m8 7 4-4 4 4"/><path d="m8 17 4 4 4-4"/>
+          </svg>
+          <span class="update-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+        </button>
+        <button id="shuffleButton" class="header-action" type="button" aria-label="Reshuffle remaining songs" title="Reshuffle remaining songs">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m16 3 4 4-4 4"/><path d="M4 17h2.5a5 5 0 0 0 4-2l3-4a5 5 0 0 1 4-2H20"/>
+            <path d="m16 14 4 4-4 4"/><path d="M4 7h2.5a5 5 0 0 1 3.5 1.5"/>
+          </svg>
+        </button>
+      </div>
+      <div class="brand-title"><h1>MyRadio</h1></div>
     </div>
     <div class="subtitle">मेरे पसंदीदा गाने</div>
     <div class="tagline">संगीत का सच्चा आनंद</div>
