@@ -21,6 +21,9 @@
     .header-action:hover { background:#e8edff; }
     .header-action:focus-visible { outline:2px solid #a18bff; outline-offset:2px; }
     .header-action:disabled { opacity:.75; cursor:wait; }
+    .shuffle-action.is-shuffling svg { animation:shuffleTurn .55s ease-in-out; }
+    .shuffle-action.is-shuffling { background:#cfd8ff; box-shadow:0 0 0 3px #a18bff55; }
+    @keyframes shuffleTurn { from { transform:rotate(0deg) scale(1); } to { transform:rotate(360deg) scale(1.08); } }
     @media (max-width:420px) { .brand-actions { left:calc((100% - 288px)/2); } .shuffle-action { left:calc(50% - 136px); } .header-action { width:36px; height:36px; } }
     .update-dots { display:none; gap:3px; align-items:center; justify-content:center; }
     #updateButton.is-updating svg { display:none; }
@@ -48,8 +51,9 @@
     <div class="brand-row">
       <div class="brand-actions">
         <button id="updateButton" class="header-action" type="button" aria-label="Update song list" title="Update song list">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M12 3v18"/><path d="m8 7 4-4 4 4"/><path d="m8 17 4 4 4-4"/>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M7.5 20V4"/><path d="m4.5 7 3-3 3 3"/>
+            <path d="M16.5 4v16"/><path d="m13.5 17 3 3 3-3"/>
           </svg>
           <span class="update-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
         </button>
@@ -331,12 +335,37 @@ function saveQueue() {
   }
 }
 
-document.getElementById("shuffleButton").addEventListener("click", () => {
+const shuffleButton = document.getElementById("shuffleButton");
+shuffleButton.addEventListener("click", () => {
   if (!songs.length) return;
-  remaining = shuffleSongs(remaining.length ? remaining : songs.filter(
-    song => !currentSong || String(song.id) !== String(currentSong.id)
-  ));
+
+  // Choose a different song immediately, then keep the rest in a fresh random queue.
+  const candidates = songs.filter(song =>
+    !currentSong || String(song.id) !== String(currentSong.id)
+  );
+  if (!candidates.length) return;
+
+  remaining = shuffleSongs(candidates);
+  const nextSong = remaining.pop();
+  if (!nextSong) return;
+
+  // Keep Back navigation sensible after a reshuffle.
+  if (historyIndex < songHistory.length - 1) {
+    songHistory = songHistory.slice(0, historyIndex + 1);
+  }
+  songHistory.push(nextSong);
+  historyIndex = songHistory.length - 1;
+  currentSong = nextSong;
+
   saveQueue();
+
+  // Visible confirmation: brief icon rotation and immediate title/song change.
+  shuffleButton.classList.remove("is-shuffling");
+  void shuffleButton.offsetWidth;
+  shuffleButton.classList.add("is-shuffling");
+  window.setTimeout(() => shuffleButton.classList.remove("is-shuffling"), 650);
+
+  playSong(currentSong);
 });
 
 const updateButton = document.getElementById("updateButton");
