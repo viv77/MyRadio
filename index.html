@@ -12,7 +12,7 @@
     main { position:relative; width:min(100%,520px); text-align:center; background:rgba(21,28,46,.92); border:1px solid #2b3650; border-radius:28px; padding:36px 28px 34px; box-shadow:0 24px 70px #0005; }
     .mark { width:76px; height:76px; margin:0 auto 20px; display:grid; place-items:center; border-radius:24px; background:linear-gradient(135deg,#8b9cff,#b48bff); color:#10162a; }
     .brand-row { position:relative; display:flex; align-items:center; justify-content:center; width:100%; min-height:48px; }
-    .brand-actions { position:absolute; left:calc((100% - 288px)/2); top:50%; transform:translateY(-50%); display:flex; align-items:center; justify-content:center; }
+    .brand-actions { position:absolute; left:calc((100% - 288px)/2); top:50%; transform:translateY(-50%); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; }
     .shuffle-action { position:absolute; left:calc(50% - 136px); top:50%; transform:translateY(-50%); }
     .brand-title { min-width:0; display:flex; align-items:center; justify-content:center; }
     h1 { margin:0; font-size:clamp(2rem,7vw,2.7rem); letter-spacing:-.04em; white-space:nowrap; }
@@ -26,6 +26,8 @@
     @keyframes shuffleTurn { from { transform:rotate(0deg) scale(1); } to { transform:rotate(360deg) scale(1.08); } }
     @media (max-width:420px) { .brand-actions { left:calc((100% - 288px)/2); } .shuffle-action { left:calc(50% - 136px); } .header-action { width:36px; height:36px; } }
     .update-dots { display:none; gap:3px; align-items:center; justify-content:center; }
+    .update-count { display:none; min-width:20px; color:#ffffff; font-size:13px; line-height:1; font-weight:700; text-align:center; font-variant-numeric:tabular-nums; }
+    .update-count.visible { display:block; }
     #updateButton.is-updating svg { display:none; }
     #updateButton.is-updating .update-dots { display:flex; }
     .update-dots i { width:4px; height:4px; border-radius:50%; background:#172554; animation:updateDot .8s infinite ease-in-out; }
@@ -38,6 +40,14 @@
     .tagline { margin:0 0 34px; color:var(--muted); font-size:1rem; line-height:1.7; }
     .wait { margin:0; color:#fff; font-size:1.08rem; font-weight:650; line-height:1.7; }
     .pulse { display:inline-block; width:8px; height:8px; margin-right:9px; border-radius:50%; background:#a18bff; vertical-align:middle; }
+    .volume-control { position:absolute; right:18px; top:112px; height:178px; display:flex; flex-direction:column; align-items:center; justify-content:space-between; z-index:2; }
+    #volume { -webkit-appearance:slider-vertical; appearance:slider-vertical; writing-mode:vertical-lr; direction:rtl; width:18px; height:142px; margin:0; cursor:pointer; accent-color:#ffffff; background:transparent; }
+    #volume::-webkit-slider-runnable-track { width:8px; border-radius:99px; background:#8793ad; border:1px solid #dce5ff; }
+    #volume::-webkit-slider-thumb { -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:#ffffff; border:1px solid #dce5ff; box-shadow:0 1px 4px #0006; }
+    #volume::-moz-range-track { width:8px; border-radius:99px; background:#8793ad; border:1px solid #dce5ff; }
+    #volume::-moz-range-thumb { width:17px; height:17px; border-radius:50%; background:#ffffff; border:1px solid #dce5ff; box-shadow:0 1px 4px #0006; }
+    .volume-icon { width:24px; height:24px; color:#ffffff; display:block; }
+    @media (max-width:420px) { .volume-control { right:8px; top:108px; height:160px; } #volume { height:126px; } }
     @media (max-width:420px) { main { padding:30px 20px; } .subtitle { font-size:1.15rem; } }
   </style>
 </head>
@@ -57,6 +67,7 @@
           </svg>
           <span class="update-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
         </button>
+        <span id="updateCount" class="update-count" aria-live="polite"></span>
       </div>
       <div class="brand-title"><h1>MyRadio</h1></div>
     </div>
@@ -68,6 +79,14 @@
     </button>
     <div class="subtitle">मेरे पसंदीदा गाने</div>
     <div class="tagline">संगीत का सच्चा आनंद</div>
+    <div class="volume-control" aria-label="Volume control">
+      <input id="volume" type="range" min="0" max="1" step="0.01" value="0.8" aria-label="Volume">
+      <svg class="volume-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M11 5 6 9H3v6h3l5 4V5Z"/>
+        <path d="M15.5 8.5a5 5 0 0 1 0 7"/>
+        <path d="M18.5 5.5a9 9 0 0 1 0 13"/>
+      </svg>
+    </div>
   
 
 <div style="margin-top:28px">
@@ -152,6 +171,14 @@ async function getDeviceName() {
 }
   const player = document.getElementById("player");
 const songTitle = document.getElementById("songTitle");
+const volumeControl = document.getElementById("volume");
+const savedVolume = localStorage.getItem("myradio_volume");
+player.volume = savedVolume === null ? 0.8 : Math.max(0, Math.min(1, Number(savedVolume)));
+volumeControl.value = player.volume;
+volumeControl.addEventListener("input", () => {
+  player.volume = Number(volumeControl.value);
+  try { localStorage.setItem("myradio_volume", String(player.volume)); } catch (error) {}
+});
 
 let songs = [];
 let remaining = [];
@@ -390,11 +417,24 @@ updateButton.addEventListener("click", async () => {
     );
     if (!refreshedSongs.length) throw new Error("No MP3 files found");
 
+    const previousIds = new Set(songs.map(song => String(song.id)));
+    const newlyAddedCount = refreshedSongs.filter(
+      song => !previousIds.has(String(song.id))
+    ).length;
+
     songs = refreshedSongs;
     remaining = shuffleSongs(songs.filter(
       song => !currentSong || String(song.id) !== String(currentSong.id)
     ));
     saveQueue();
+    const updateCount = document.getElementById("updateCount");
+    updateCount.textContent = String(newlyAddedCount);
+    updateCount.classList.add("visible");
+    window.clearTimeout(window.myRadioUpdateCountTimer);
+    window.myRadioUpdateCountTimer = window.setTimeout(() => {
+      updateCount.classList.remove("visible");
+      updateCount.textContent = "";
+    }, 3000);
   } catch (error) {
     console.error("Playlist update error:", error);
     songTitle.textContent = "गानों की सूची अपडेट नहीं हो सकी।";
