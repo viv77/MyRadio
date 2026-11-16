@@ -11,7 +11,21 @@
     body { margin:0; min-height:100vh; display:grid; place-items:center; padding:24px; font-family:system-ui,-apple-system,"Noto Sans Devanagari","Mangal",sans-serif; color:var(--text); background:radial-gradient(ellipse at top,#202a49 0%,var(--bg) 58%); }
     main { width:min(100%,520px); text-align:center; background:rgba(21,28,46,.92); border:1px solid #2b3650; border-radius:28px; padding:36px 28px 34px; box-shadow:0 24px 70px #0005; }
     .mark { width:76px; height:76px; margin:0 auto 20px; display:grid; place-items:center; border-radius:24px; background:linear-gradient(135deg,#8b9cff,#b48bff); color:#10162a; }
+    .brand-row { display:flex; align-items:center; justify-content:center; gap:14px; }
     h1 { margin:0; font-size:clamp(2rem,7vw,2.7rem); letter-spacing:-.04em; }
+    .header-action { width:34px; height:38px; padding:5px; border:0; border-radius:9px; background:transparent; color:#f5f7fb; display:grid; place-items:center; cursor:pointer; flex:0 0 auto; }
+    .header-action svg { width:23px; height:23px; display:block; }
+    .header-action:hover { background:#ffffff12; }
+    .header-action:focus-visible { outline:2px solid #a18bff; outline-offset:2px; }
+    .update-dots { display:none; gap:3px; align-items:center; justify-content:center; }
+    #updateButton.is-updating svg { display:none; }
+    #updateButton.is-updating .update-dots { display:flex; }
+    .update-dots i { width:4px; height:4px; border-radius:50%; background:#c8d2f0; animation:updateDot .8s infinite ease-in-out; }
+    .update-dots i:nth-child(2) { animation-delay:.12s; }
+    .update-dots i:nth-child(3) { animation-delay:.24s; }
+    .update-dots i:nth-child(4) { animation-delay:.36s; }
+    .update-dots i:nth-child(5) { animation-delay:.48s; }
+    @keyframes updateDot { 0%,60%,100% { opacity:.3; transform:translateY(0); } 30% { opacity:1; transform:translateY(-3px); } }
     .subtitle { margin:18px 0 7px; font-size:1.28rem; font-weight:700; line-height:1.7; }
     .tagline { margin:0 0 34px; color:var(--muted); font-size:1rem; line-height:1.7; }
     .wait { margin:0; color:#fff; font-size:1.08rem; font-weight:650; line-height:1.7; }
@@ -26,7 +40,21 @@
         <path d="M8 20v8M16 13v22M24 7v34M32 15v18M40 20v8" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
       </svg>
     </div>
-    <h1>MyRadio</h1>
+    <div class="brand-row">
+      <button id="shuffleButton" class="header-action" type="button" aria-label="Shuffle remaining songs" title="Shuffle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m16 3 4 4-4 4"/><path d="M4 17h2.5a5 5 0 0 0 4-2l3-4a5 5 0 0 1 4-2H20"/>
+          <path d="m16 14 4 4-4 4"/><path d="M4 7h2.5a5 5 0 0 1 3.5 1.5"/>
+        </svg>
+      </button>
+      <h1>MyRadio</h1>
+      <button id="updateButton" class="header-action" type="button" aria-label="Update song list" title="Update song list">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 3v18"/><path d="m8 7 4-4 4 4"/><path d="m8 17 4 4 4-4"/>
+        </svg>
+        <span class="update-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+      </button>
+    </div>
     <div class="subtitle">मेरे पसंदीदा गाने</div>
     <div class="tagline">संगीत का सच्चा आनंद</div>
   
@@ -210,14 +238,7 @@ function playNext() {
   songHistory.push(currentSong);
   historyIndex = songHistory.length - 1;
 
-  try {
-    localStorage.setItem(queueKey, JSON.stringify({
-      allIds: songs.map(song => String(song.id)).sort(),
-      remainingIds: remaining.map(song => String(song.id))
-    }));
-  } catch (error) {
-    console.error("Queue could not be saved:", error);
-  }
+  saveQueue();
 
   playSong(currentSong);
 }
@@ -291,6 +312,61 @@ function formatTime(seconds) {
   const secs = Math.floor(seconds % 60);
   return `${minutes}:${String(secs).padStart(2, "0")}`;
 }
+
+function saveQueue() {
+  try {
+    localStorage.setItem(queueKey, JSON.stringify({
+      allIds: songs.map(song => String(song.id)).sort(),
+      remainingIds: remaining.map(song => String(song.id))
+    }));
+  } catch (error) {
+    console.error("Queue could not be saved:", error);
+  }
+}
+
+document.getElementById("shuffleButton").addEventListener("click", () => {
+  if (!songs.length) return;
+  remaining = shuffleSongs(remaining.length ? remaining : songs.filter(
+    song => !currentSong || String(song.id) !== String(currentSong.id)
+  ));
+  saveQueue();
+});
+
+const updateButton = document.getElementById("updateButton");
+updateButton.addEventListener("click", async () => {
+  if (updateButton.classList.contains("is-updating")) return;
+  updateButton.classList.add("is-updating");
+  updateButton.disabled = true;
+
+  try {
+    const deviceName = await getDeviceName();
+    const response = await fetch(
+      `${API}/api/files?access=${encodeURIComponent(accessToken || "")}&device=${encodeURIComponent(deviceName)}&deviceId=${encodeURIComponent(deviceShortId)}`
+    );
+    const data = await response.json();
+    if (!response.ok || !data.success || !data.items) {
+      throw new Error("Playlist could not be updated");
+    }
+
+    const refreshedSongs = data.items.filter(song =>
+      song.type === "file" &&
+      (song.extension || song.name.split(".").pop()).toLowerCase() === "mp3"
+    );
+    if (!refreshedSongs.length) throw new Error("No MP3 files found");
+
+    songs = refreshedSongs;
+    remaining = shuffleSongs(songs.filter(
+      song => !currentSong || String(song.id) !== String(currentSong.id)
+    ));
+    saveQueue();
+  } catch (error) {
+    console.error("Playlist update error:", error);
+    songTitle.textContent = "गानों की सूची अपडेट नहीं हो सकी।";
+  } finally {
+    updateButton.classList.remove("is-updating");
+    updateButton.disabled = false;
+  }
+});
 
 playPause.addEventListener("click", async () => {
   if (player.paused) {
