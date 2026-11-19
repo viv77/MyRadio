@@ -238,8 +238,10 @@ function alignSideControls() {
 
   // Update top aligns with the slider's top.
   const updateTop = sliderTop - brandRect.top;
-  // Timer bottom aligns with the bottom of the volume icon.
-  const timerTop = iconBottom - autoSkipButton.offsetHeight - brandRect.top;
+  // Timer bottom aligns with the bottom of the volume slider,
+  // leaving the volume icon below it.
+  const sliderBottom = sliderTop + sliderHeight;
+  const timerTop = sliderBottom - autoSkipButton.offsetHeight - brandRect.top;
   const buttonSize = updateButton.offsetHeight;
   updateButton.style.top = `${updateTop}px`;
   autoSkipButton.style.top = `${timerTop}px`;
