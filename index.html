@@ -12,8 +12,17 @@
     main { position:relative; width:min(100%,520px); max-height:calc(100svh - 16px); text-align:center; background:rgba(21,28,46,.92); border:1px solid #2b3650; border-radius:28px; padding:36px 28px 34px; box-shadow:0 24px 70px #0005; }
     .mark { width:76px; height:76px; margin:0 auto 20px; display:grid; place-items:center; border-radius:24px; background:linear-gradient(135deg,#8b9cff,#b48bff); color:#10162a; }
     .brand-row { position:relative; display:flex; align-items:center; justify-content:center; width:100%; min-height:48px; }
-    .brand-actions { position:absolute; left:calc((100% - 288px)/2); top:50%; transform:translateY(-50%); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; }
-    .shuffle-action { position:absolute; left:calc(50% - 136px); top:50%; transform:translateY(-50%); }
+    .brand-actions { position:absolute; left:calc((100% - 288px)/2); top:50%; transform:translateY(-50%); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; z-index:5; }
+    .shuffle-action, .auto-skip-action { position:relative; left:auto; top:auto; transform:none; }
+    .auto-skip-action { background:#a18bff; color:#101626; border-color:#a18bff; font-size:13px; font-weight:800; padding:0; }
+    .auto-skip-action:hover { background:#b7a7ff; }
+    .auto-skip-popup { position:absolute; left:calc((100% - 288px)/2 - 8px); top:calc(50% + 74px); z-index:20; width:190px; padding:12px; border:1px solid #536080; border-radius:15px; background:#202a43; box-shadow:0 12px 32px #0009; display:none; }
+    .auto-skip-popup.open { display:block; }
+    .auto-skip-popup-title { margin:0 0 9px; color:#fff; font-size:12px; font-weight:800; letter-spacing:.06em; }
+    .auto-skip-options { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
+    .auto-skip-option { min-height:34px; border:1px solid #7180a2; border-radius:9px; background:#34415f; color:#fff; font:700 13px system-ui,sans-serif; cursor:pointer; }
+    .auto-skip-option.selected { background:#fff; color:#172554; border-color:#fff; }
+    .auto-skip-option:focus-visible { outline:2px solid #a18bff; outline-offset:2px; }
     .brand-title { min-width:0; display:flex; align-items:center; justify-content:center; }
     h1 { margin:0; font-size:clamp(2rem,7vw,2.7rem); letter-spacing:-.04em; white-space:nowrap; }
     .header-action { width:38px; height:38px; padding:7px; border:1px solid #dce5ff; border-radius:50%; background:#ffffff; color:#172554; display:grid; place-items:center; cursor:pointer; flex:0 0 auto; }
@@ -24,7 +33,7 @@
     .shuffle-action.is-shuffling svg { animation:shuffleTurn .55s ease-in-out; }
     .shuffle-action.is-shuffling { background:#cfd8ff; box-shadow:0 0 0 3px #a18bff55; }
     @keyframes shuffleTurn { from { transform:rotate(0deg) scale(1); } to { transform:rotate(360deg) scale(1.08); } }
-    @media (max-width:420px) { .brand-actions { left:calc((100% - 288px)/2); } .shuffle-action { left:calc(50% - 136px); } .header-action { width:36px; height:36px; } }
+    @media (max-width:420px) { .brand-actions { left:calc((100% - 288px)/2); gap:7px; } .header-action { width:36px; height:36px; } .auto-skip-popup { left:calc((100% - 288px)/2 - 6px); top:calc(50% + 75px); width:184px; } }
     .update-dots { display:none; gap:3px; align-items:center; justify-content:center; }
     .update-count { display:none; min-width:20px; color:#ffffff; font-size:13px; line-height:1; font-weight:700; text-align:center; font-variant-numeric:tabular-nums; }
     .update-count.visible { display:block; }
@@ -69,15 +78,27 @@
           <span class="update-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
         </button>
         <span id="updateCount" class="update-count" aria-live="polite"></span>
-      </div>
-      <div class="brand-title"><h1>MyRadio</h1></div>
-    </div>
-    <button id="shuffleButton" class="header-action shuffle-action" type="button" aria-label="Reshuffle remaining songs" title="Reshuffle remaining songs">
+        <button id="shuffleButton" class="header-action shuffle-action" type="button" aria-label="Reshuffle remaining songs" title="Reshuffle remaining songs">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="m16 3 4 4-4 4"/><path d="M4 17h2.5a5 5 0 0 0 4-2l3-4a5 5 0 0 1 4-2H20"/>
         <path d="m16 14 4 4-4 4"/><path d="M4 7h2.5a5 5 0 0 1 3.5 1.5"/>
       </svg>
-    </button>
+        </button>
+        <button id="autoSkipButton" class="header-action auto-skip-action" type="button" aria-label="Auto-Skip: Full song" title="Auto-Skip: Full song" aria-haspopup="true" aria-expanded="false">F</button>
+      </div>
+      <div class="brand-title"><h1>MyRadio</h1></div>
+    </div>
+    <div id="autoSkipPopup" class="auto-skip-popup" role="dialog" aria-label="Choose Auto-Skip setting">
+      <p class="auto-skip-popup-title">AUTO-SKIP</p>
+      <div class="auto-skip-options">
+        <button class="auto-skip-option selected" type="button" data-value="full">F</button>
+        <button class="auto-skip-option" type="button" data-value="half">½</button>
+        <button class="auto-skip-option" type="button" data-value="1">1m</button>
+        <button class="auto-skip-option" type="button" data-value="2">2m</button>
+        <button class="auto-skip-option" type="button" data-value="3">3m</button>
+        <button class="auto-skip-option" type="button" data-value="4">4m</button>
+      </div>
+    </div>
     <div class="subtitle">मेरे पसंदीदा गाने</div>
     <div class="tagline">संगीत का सच्चा आनंद</div>
     <div class="volume-control" aria-label="Volume control">
@@ -171,6 +192,78 @@ async function getDeviceName() {
   return "Unknown device";
 }
   const player = document.getElementById("player");
+
+// Auto-Skip preference persists on this device.
+const autoSkipButton = document.getElementById("autoSkipButton");
+const autoSkipPopup = document.getElementById("autoSkipPopup");
+const autoSkipOptions = [...document.querySelectorAll(".auto-skip-option")];
+const autoSkipLabels = { full: "F", half: "½", "1": "1m", "2": "2m", "3": "3m", "4": "4m" };
+let autoSkipChoice = "full";
+let autoSkipTriggered = false;
+let deferAutoSkipForSongId = null;
+try {
+  const savedAutoSkip = localStorage.getItem("myradio_auto_skip");
+  if (savedAutoSkip && Object.prototype.hasOwnProperty.call(autoSkipLabels, savedAutoSkip)) {
+    autoSkipChoice = savedAutoSkip;
+  }
+} catch (error) {}
+
+function refreshAutoSkipButton() {
+  autoSkipButton.textContent = autoSkipLabels[autoSkipChoice];
+  autoSkipButton.setAttribute("aria-label", `Auto-Skip: ${autoSkipChoice === "full" ? "Full song" : autoSkipChoice === "half" ? "Halfway" : autoSkipChoice + " minutes"}`);
+  autoSkipButton.title = autoSkipButton.getAttribute("aria-label");
+  autoSkipOptions.forEach(option => {
+    const selected = option.dataset.value === autoSkipChoice;
+    option.classList.toggle("selected", selected);
+    option.setAttribute("aria-pressed", String(selected));
+  });
+}
+refreshAutoSkipButton();
+
+function autoSkipThreshold() {
+  if (autoSkipChoice === "full") return Infinity;
+  if (autoSkipChoice === "half") {
+    return Number.isFinite(player.duration) && player.duration > 0 ? player.duration / 2 : Infinity;
+  }
+  return Number(autoSkipChoice) * 60;
+}
+
+autoSkipButton.addEventListener("click", () => {
+  const opening = !autoSkipPopup.classList.contains("open");
+  autoSkipPopup.classList.toggle("open", opening);
+  autoSkipButton.setAttribute("aria-expanded", String(opening));
+});
+
+autoSkipOptions.forEach(option => {
+  option.addEventListener("click", () => {
+    const nextChoice = option.dataset.value;
+    const threshold = nextChoice === "full" ? Infinity :
+      nextChoice === "half" ? (Number.isFinite(player.duration) && player.duration > 0 ? player.duration / 2 : Infinity) :
+      Number(nextChoice) * 60;
+
+    // If the current song has already passed the newly selected mark,
+    // keep it playing and begin this setting with the next song.
+    if (currentSong && Number.isFinite(threshold) && player.currentTime >= threshold) {
+      deferAutoSkipForSongId = String(currentSong.id);
+    } else {
+      deferAutoSkipForSongId = null;
+    }
+
+    autoSkipChoice = nextChoice;
+    autoSkipTriggered = false;
+    try { localStorage.setItem("myradio_auto_skip", autoSkipChoice); } catch (error) {}
+    refreshAutoSkipButton();
+    autoSkipPopup.classList.remove("open");
+    autoSkipButton.setAttribute("aria-expanded", "false");
+  });
+});
+
+document.addEventListener("click", event => {
+  if (!autoSkipPopup.contains(event.target) && !autoSkipButton.contains(event.target)) {
+    autoSkipPopup.classList.remove("open");
+    autoSkipButton.setAttribute("aria-expanded", "false");
+  }
+});
 const songTitle = document.getElementById("songTitle");
 const volumeControl = document.getElementById("volume");
 let savedVolume = null;
@@ -300,6 +393,7 @@ function playNext() {
 }
 
 function playSong(song) {
+  autoSkipTriggered = false;
   songTitle.textContent = song.name.replace(/\.mp3$/i, "");
 
   if ("mediaSession" in navigator) {
@@ -496,6 +590,22 @@ player.addEventListener("timeupdate", () => {
   currentTime.textContent = formatTime(player.currentTime);
   if (Number.isFinite(player.duration) && player.duration > 0) {
     progress.value = (player.currentTime / player.duration) * 100;
+  }
+
+  if (
+    !player.paused &&
+    !player.ended &&
+    currentSong &&
+    !autoSkipTriggered &&
+    autoSkipChoice !== "full" &&
+    deferAutoSkipForSongId !== String(currentSong.id)
+  ) {
+    const threshold = autoSkipThreshold();
+    // A fixed-minute choice longer than this song is ignored; natural end wins.
+    if (Number.isFinite(threshold) && threshold < player.duration && player.currentTime >= threshold) {
+      autoSkipTriggered = true;
+      playNext();
+    }
   }
 });
 
