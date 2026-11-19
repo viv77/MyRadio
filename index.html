@@ -12,13 +12,15 @@
     main { position:relative; width:min(100%,520px); max-height:calc(100svh - 16px); text-align:center; background:rgba(21,28,46,.92); border:1px solid #2b3650; border-radius:28px; padding:36px 28px 34px; box-shadow:0 24px 70px #0005; }
     .mark { width:76px; height:76px; margin:0 auto 20px; display:grid; place-items:center; border-radius:24px; background:linear-gradient(135deg,#8b9cff,#b48bff); color:#10162a; }
     .brand-row { position:relative; display:flex; align-items:center; justify-content:center; width:100%; min-height:48px; }
-    .brand-actions { position:absolute; left:calc((100% - 288px)/2); top:50%; transform:translateY(-50%); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; z-index:5; }
-    .shuffle-action, .auto-skip-action { position:relative; left:auto; top:auto; transform:none; }
-    .auto-skip-action { background:#a18bff; color:#101626; border-color:#a18bff; font-size:13px; font-weight:800; padding:0; }
+    .brand-actions { position:absolute; left:calc((100% - 288px)/2); top:0; width:38px; height:215px; z-index:5; }
+    .brand-actions > button { position:absolute; left:0; }
+    #updateButton { top:5px; }
+    .update-count { position:absolute; top:45px; left:0; width:38px; }
+    .shuffle-action { top:91px; }
+    .auto-skip-action { top:177px; background:#a18bff; color:#101626; border-color:#a18bff; font-size:17px; font-weight:850; padding:0; }
     .auto-skip-action:hover { background:#b7a7ff; }
-    .auto-skip-popup { position:absolute; left:calc((100% - 288px)/2 - 8px); top:calc(50% + 74px); z-index:20; width:190px; padding:12px; border:1px solid #536080; border-radius:15px; background:#202a43; box-shadow:0 12px 32px #0009; display:none; }
+    .auto-skip-popup { position:absolute; left:calc((100% - 288px)/2 - 8px); top:calc(50% + 74px); z-index:20; width:190px; padding:10px; border:1px solid #536080; border-radius:15px; background:#202a43; box-shadow:0 12px 32px #0009; display:none; }
     .auto-skip-popup.open { display:block; }
-    .auto-skip-popup-title { margin:0 0 9px; color:#fff; font-size:12px; font-weight:800; letter-spacing:.06em; }
     .auto-skip-options { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
     .auto-skip-option { min-height:34px; border:1px solid #7180a2; border-radius:9px; background:#34415f; color:#fff; font:700 13px system-ui,sans-serif; cursor:pointer; }
     .auto-skip-option.selected { background:#fff; color:#172554; border-color:#fff; }
@@ -33,7 +35,15 @@
     .shuffle-action.is-shuffling svg { animation:shuffleTurn .55s ease-in-out; }
     .shuffle-action.is-shuffling { background:#cfd8ff; box-shadow:0 0 0 3px #a18bff55; }
     @keyframes shuffleTurn { from { transform:rotate(0deg) scale(1); } to { transform:rotate(360deg) scale(1.08); } }
-    @media (max-width:420px) { .brand-actions { left:calc((100% - 288px)/2); gap:7px; } .header-action { width:36px; height:36px; } .auto-skip-popup { left:calc((100% - 288px)/2 - 6px); top:calc(50% + 75px); width:184px; } }
+    @media (max-width:420px) {
+      .brand-actions { left:calc((100% - 288px)/2); width:36px; height:216px; }
+      .header-action { width:36px; height:36px; }
+      #updateButton { top:6px; }
+      .update-count { top:44px; width:36px; }
+      .shuffle-action { top:93px; }
+      .auto-skip-action { top:180px; font-size:17px; }
+      .auto-skip-popup { left:calc((100% - 288px)/2 - 6px); top:calc(50% + 75px); width:184px; }
+    }
     .update-dots { display:none; gap:3px; align-items:center; justify-content:center; }
     .update-count { display:none; min-width:20px; color:#ffffff; font-size:13px; line-height:1; font-weight:700; text-align:center; font-variant-numeric:tabular-nums; }
     .update-count.visible { display:block; }
@@ -49,15 +59,20 @@
     .tagline { margin:0 0 34px; color:var(--muted); font-size:1rem; line-height:1.7; }
     .wait { margin:0; color:#fff; font-size:1.08rem; font-weight:650; line-height:1.7; }
     .pulse { display:inline-block; width:8px; height:8px; margin-right:9px; border-radius:50%; background:#a18bff; vertical-align:middle; }
-    .volume-control { position:absolute; right:calc(50% - 129px); top:112px; height:178px; width:28px; display:flex; flex-direction:column; align-items:center; justify-content:space-between; z-index:2; }
-    #volume { -webkit-appearance:none; appearance:none; writing-mode:vertical-lr; direction:rtl; width:24px; height:142px; margin:0; padding:0; cursor:pointer; background:transparent; touch-action:none; }
-    #volume::-webkit-slider-runnable-track { width:9px; height:142px; border-radius:99px; background:linear-gradient(to top,#ffffff 0%,#ffffff var(--volume-fill,80%),#8793ad var(--volume-fill,80%),#8793ad 100%); border:1px solid #dce5ff; }
+    .volume-control { position:absolute; right:calc(50% - 129px); top:137px; height:210px; width:28px; display:flex; flex-direction:column; align-items:center; justify-content:space-between; z-index:2; }
+    #volume { -webkit-appearance:none; appearance:none; writing-mode:vertical-lr; direction:rtl; width:24px; height:174px; margin:0; padding:0; cursor:pointer; background:transparent; touch-action:none; }
+    #volume::-webkit-slider-runnable-track { width:9px; height:174px; border-radius:99px; background:linear-gradient(to top,#ffffff 0%,#ffffff var(--volume-fill,80%),#8793ad var(--volume-fill,80%),#8793ad 100%); border:1px solid #dce5ff; }
     #volume::-webkit-slider-thumb { -webkit-appearance:none; width:26px; height:26px; margin-left:-8px; border-radius:50%; background:#ffffff; border:2px solid #dce5ff; box-shadow:0 1px 5px #0008; }
-    #volume::-moz-range-track { width:9px; height:142px; border-radius:99px; background:#8793ad; border:1px solid #dce5ff; }
+    #volume::-moz-range-track { width:9px; height:174px; border-radius:99px; background:#8793ad; border:1px solid #dce5ff; }
     #volume::-moz-range-progress { width:9px; border-radius:99px; background:#ffffff; }
     #volume::-moz-range-thumb { width:24px; height:24px; border-radius:50%; background:#ffffff; border:2px solid #dce5ff; box-shadow:0 1px 5px #0008; }
     .volume-icon { width:24px; height:24px; color:#ffffff; display:block; }
-    @media (max-width:420px) { .volume-control { right:calc(50% - 129px); top:108px; height:160px; } #volume { height:126px; } #volume::-webkit-slider-runnable-track { height:126px; } }
+    @media (max-width:420px) {
+      .volume-control { right:calc(50% - 129px); top:132px; height:210px; }
+      #volume { height:174px; }
+      #volume::-webkit-slider-runnable-track { height:174px; }
+      #volume::-moz-range-track { height:174px; }
+    }
     @media (max-width:420px) { main { padding:30px 20px; } .subtitle { font-size:1.15rem; } }
   </style>
 </head>
@@ -89,7 +104,6 @@
       <div class="brand-title"><h1>MyRadio</h1></div>
     </div>
     <div id="autoSkipPopup" class="auto-skip-popup" role="dialog" aria-label="Choose Auto-Skip setting">
-      <p class="auto-skip-popup-title">AUTO-SKIP</p>
       <div class="auto-skip-options">
         <button class="auto-skip-option selected" type="button" data-value="full">F</button>
         <button class="auto-skip-option" type="button" data-value="half">½</button>
@@ -201,6 +215,16 @@ const autoSkipLabels = { full: "F", half: "½", "1": "1m", "2": "2m", "3": "3m",
 let autoSkipChoice = "full";
 let autoSkipTriggered = false;
 let deferAutoSkipForSongId = null;
+let autoSkipPopupTimer = null;
+
+function closeAutoSkipPopup() {
+  autoSkipPopup.classList.remove("open");
+  autoSkipButton.setAttribute("aria-expanded", "false");
+  if (autoSkipPopupTimer !== null) {
+    clearTimeout(autoSkipPopupTimer);
+    autoSkipPopupTimer = null;
+  }
+}
 try {
   const savedAutoSkip = localStorage.getItem("myradio_auto_skip");
   if (savedAutoSkip && Object.prototype.hasOwnProperty.call(autoSkipLabels, savedAutoSkip)) {
@@ -230,8 +254,14 @@ function autoSkipThreshold() {
 
 autoSkipButton.addEventListener("click", () => {
   const opening = !autoSkipPopup.classList.contains("open");
-  autoSkipPopup.classList.toggle("open", opening);
-  autoSkipButton.setAttribute("aria-expanded", String(opening));
+  if (opening) {
+    autoSkipPopup.classList.add("open");
+    autoSkipButton.setAttribute("aria-expanded", "true");
+    if (autoSkipPopupTimer !== null) clearTimeout(autoSkipPopupTimer);
+    autoSkipPopupTimer = setTimeout(closeAutoSkipPopup, 6000);
+  } else {
+    closeAutoSkipPopup();
+  }
 });
 
 autoSkipOptions.forEach(option => {
@@ -253,15 +283,13 @@ autoSkipOptions.forEach(option => {
     autoSkipTriggered = false;
     try { localStorage.setItem("myradio_auto_skip", autoSkipChoice); } catch (error) {}
     refreshAutoSkipButton();
-    autoSkipPopup.classList.remove("open");
-    autoSkipButton.setAttribute("aria-expanded", "false");
+    closeAutoSkipPopup();
   });
 });
 
 document.addEventListener("click", event => {
   if (!autoSkipPopup.contains(event.target) && !autoSkipButton.contains(event.target)) {
-    autoSkipPopup.classList.remove("open");
-    autoSkipButton.setAttribute("aria-expanded", "false");
+    closeAutoSkipPopup();
   }
 });
 const songTitle = document.getElementById("songTitle");
