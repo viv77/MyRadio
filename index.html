@@ -12,12 +12,12 @@
     main { position:relative; width:min(100%,520px); max-height:calc(100svh - 16px); text-align:center; background:rgba(21,28,46,.92); border:1px solid #2b3650; border-radius:28px; padding:36px 28px 34px; box-shadow:0 24px 70px #0005; }
     .mark { width:76px; height:76px; margin:0 auto 20px; display:grid; place-items:center; border-radius:24px; background:linear-gradient(135deg,#8b9cff,#b48bff); color:#10162a; }
     .brand-row { position:relative; display:flex; align-items:center; justify-content:center; width:100%; min-height:48px; }
-    .brand-actions { position:absolute; left:calc((100% - 288px)/2); top:0; width:38px; height:215px; z-index:5; }
+    .brand-actions { position:absolute; left:calc((100% - 288px)/2); top:0; width:38px; height:0; z-index:5; }
     .brand-actions > button { position:absolute; left:0; }
-    #updateButton { top:5px; }
-    .update-count { position:absolute; top:45px; left:0; width:38px; }
-    .shuffle-action { top:91px; }
-    .auto-skip-action { top:177px; background:#a18bff; color:#101626; border-color:#a18bff; font-size:17px; font-weight:850; padding:0; }
+    #updateButton { top:0; }
+    .update-count { position:absolute; top:40px; left:0; width:38px; }
+    .shuffle-action { top:0; }
+    .auto-skip-action { top:0; background:#a18bff; color:#101626; border-color:#a18bff; font-size:17px; font-weight:850; padding:0; }
     .auto-skip-action:hover { background:#b7a7ff; }
     .auto-skip-popup { position:absolute; left:calc((100% - 288px)/2 - 8px); top:calc(50% + 74px); z-index:20; width:190px; padding:10px; border:1px solid #536080; border-radius:15px; background:#202a43; box-shadow:0 12px 32px #0009; display:none; }
     .auto-skip-popup.open { display:block; }
@@ -36,12 +36,10 @@
     .shuffle-action.is-shuffling { background:#cfd8ff; box-shadow:0 0 0 3px #a18bff55; }
     @keyframes shuffleTurn { from { transform:rotate(0deg) scale(1); } to { transform:rotate(360deg) scale(1.08); } }
     @media (max-width:420px) {
-      .brand-actions { left:calc((100% - 288px)/2); width:36px; height:216px; }
+      .brand-actions { left:calc((100% - 288px)/2); width:36px; }
       .header-action { width:36px; height:36px; }
-      #updateButton { top:6px; }
-      .update-count { top:44px; width:36px; }
-      .shuffle-action { top:93px; }
-      .auto-skip-action { top:180px; font-size:17px; }
+      .update-count { width:36px; }
+      .auto-skip-action { font-size:17px; }
       .auto-skip-popup { left:calc((100% - 288px)/2 - 6px); top:calc(50% + 75px); width:184px; }
     }
     .update-dots { display:none; gap:3px; align-items:center; justify-content:center; }
@@ -59,20 +57,14 @@
     .tagline { margin:0 0 34px; color:var(--muted); font-size:1rem; line-height:1.7; }
     .wait { margin:0; color:#fff; font-size:1.08rem; font-weight:650; line-height:1.7; }
     .pulse { display:inline-block; width:8px; height:8px; margin-right:9px; border-radius:50%; background:#a18bff; vertical-align:middle; }
-    .volume-control { position:absolute; right:calc(50% - 129px); top:137px; height:210px; width:28px; display:flex; flex-direction:column; align-items:center; justify-content:space-between; z-index:2; }
-    #volume { -webkit-appearance:none; appearance:none; writing-mode:vertical-lr; direction:rtl; width:24px; height:174px; margin:0; padding:0; cursor:pointer; background:transparent; touch-action:none; }
-    #volume::-webkit-slider-runnable-track { width:9px; height:174px; border-radius:99px; background:linear-gradient(to top,#ffffff 0%,#ffffff var(--volume-fill,80%),#8793ad var(--volume-fill,80%),#8793ad 100%); border:1px solid #dce5ff; }
+    .volume-control { position:absolute; right:calc(50% - 129px); top:74px; height:220px; width:28px; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:9px; z-index:2; }
+    #volume { -webkit-appearance:none; appearance:none; writing-mode:vertical-lr; direction:rtl; width:24px; height:calc(100% - 33px); min-height:90px; margin:0; padding:0; cursor:pointer; background:transparent; touch-action:none; flex:1 1 auto; }
+    #volume::-webkit-slider-runnable-track { width:9px; height:var(--slider-track-height,100%); border-radius:99px; background:linear-gradient(to top,#ffffff 0%,#ffffff var(--volume-fill,80%),#8793ad var(--volume-fill,80%),#8793ad 100%); border:1px solid #dce5ff; }
     #volume::-webkit-slider-thumb { -webkit-appearance:none; width:26px; height:26px; margin-left:-8px; border-radius:50%; background:#ffffff; border:2px solid #dce5ff; box-shadow:0 1px 5px #0008; }
-    #volume::-moz-range-track { width:9px; height:174px; border-radius:99px; background:#8793ad; border:1px solid #dce5ff; }
+    #volume::-moz-range-track { width:9px; height:var(--slider-track-height,100%); border-radius:99px; background:#8793ad; border:1px solid #dce5ff; }
     #volume::-moz-range-progress { width:9px; border-radius:99px; background:#ffffff; }
     #volume::-moz-range-thumb { width:24px; height:24px; border-radius:50%; background:#ffffff; border:2px solid #dce5ff; box-shadow:0 1px 5px #0008; }
     .volume-icon { width:24px; height:24px; color:#ffffff; display:block; }
-    @media (max-width:420px) {
-      .volume-control { right:calc(50% - 129px); top:132px; height:210px; }
-      #volume { height:174px; }
-      #volume::-webkit-slider-runnable-track { height:174px; }
-      #volume::-moz-range-track { height:174px; }
-    }
     @media (max-width:420px) { main { padding:30px 20px; } .subtitle { font-size:1.15rem; } }
   </style>
 </head>
@@ -206,6 +198,59 @@ async function getDeviceName() {
   return "Unknown device";
 }
   const player = document.getElementById("player");
+
+// Keep the side controls aligned to the actual player geometry on both laptop and mobile.
+function alignSideControls() {
+  const main = document.querySelector("main");
+  const mark = document.querySelector(".mark");
+  const brandRow = document.querySelector(".brand-row");
+  const brandActions = document.querySelector(".brand-actions");
+  const volumeControl = document.querySelector(".volume-control");
+  const volumeSlider = document.getElementById("volume");
+  const volumeIcon = document.querySelector(".volume-icon");
+  const updateButton = document.getElementById("updateButton");
+  const shuffleButton = document.getElementById("shuffleButton");
+  const autoSkipButton = document.getElementById("autoSkipButton");
+  const exitButton = document.getElementById("exitButton");
+  if (!main || !mark || !brandRow || !brandActions || !volumeControl ||
+      !volumeSlider || !volumeIcon || !updateButton || !shuffleButton ||
+      !autoSkipButton || !exitButton) return;
+
+  const mainRect = main.getBoundingClientRect();
+  const markRect = mark.getBoundingClientRect();
+  const brandRect = brandRow.getBoundingClientRect();
+  const exitRect = exitButton.getBoundingClientRect();
+
+  // Slider begins at the vertical midpoint of the MyRadio mark.
+  const sliderTop = markRect.top + markRect.height / 2;
+  // Keep the volume icon safely above the Exit/Close button.
+  const iconBottom = exitRect.top - 12;
+  const iconHeight = 24;
+  const gap = 9;
+  const sliderHeight = Math.max(90, iconBottom - sliderTop - iconHeight - gap);
+  const controlHeight = sliderHeight + gap + iconHeight;
+
+  volumeControl.style.top = `${sliderTop - mainRect.top}px`;
+  volumeControl.style.height = `${controlHeight}px`;
+  volumeSlider.style.height = `${sliderHeight}px`;
+  volumeSlider.style.flex = "0 0 auto";
+  volumeSlider.style.setProperty("--slider-track-height", `${sliderHeight}px`);
+
+  // Update top aligns with the slider's top.
+  const updateTop = sliderTop - brandRect.top;
+  // Timer bottom aligns with the bottom of the volume icon.
+  const timerTop = iconBottom - autoSkipButton.offsetHeight - brandRect.top;
+  const buttonSize = updateButton.offsetHeight;
+  updateButton.style.top = `${updateTop}px`;
+  autoSkipButton.style.top = `${timerTop}px`;
+  // Reshuffle centre is exactly halfway between Update and Timer centres.
+  const shuffleTop = ((updateTop + buttonSize / 2) + (timerTop + buttonSize / 2)) / 2 - shuffleButton.offsetHeight / 2;
+  shuffleButton.style.top = `${shuffleTop}px`;
+}
+
+window.addEventListener("resize", alignSideControls, { passive: true });
+window.addEventListener("orientationchange", () => requestAnimationFrame(alignSideControls), { passive: true });
+requestAnimationFrame(() => requestAnimationFrame(alignSideControls));
 
 // Auto-Skip preference persists on this device.
 const autoSkipButton = document.getElementById("autoSkipButton");
