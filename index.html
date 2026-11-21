@@ -370,6 +370,19 @@ function shuffleSongs(list) {
   return result;
 }
 
+// Keep the in-memory history and its index aligned with the 100-song saved buffer.
+function addToSongHistory(song) {
+  if (historyIndex < songHistory.length - 1) {
+    songHistory = songHistory.slice(0, historyIndex + 1);
+  }
+  songHistory.push(song);
+  if (songHistory.length > 100) {
+    const excess = songHistory.length - 100;
+    songHistory.splice(0, excess);
+  }
+  historyIndex = songHistory.length - 1;
+}
+
 async function startRadio() {
   if (starting) return;
   starting = true;
@@ -489,8 +502,7 @@ function playNext() {
 
   if (!currentSong) return;
 
-  songHistory.push(currentSong);
-  historyIndex = songHistory.length - 1;
+  addToSongHistory(currentSong);
 
   saveQueue();
 
@@ -573,8 +585,8 @@ function saveQueue() {
     localStorage.setItem(queueKey, JSON.stringify({
       allIds: songs.map(song => String(song.id)).sort(),
       remainingIds: remaining.map(song => String(song.id)),
-      historyIds: songHistory.slice(-100).map(song => String(song.id)),
-      historyIndex: Math.min(historyIndex, 99)
+      historyIds: songHistory.map(song => String(song.id)),
+      historyIndex: historyIndex
     }));
   } catch (error) {
     console.error("Queue could not be saved:", error);
@@ -596,11 +608,7 @@ shuffleButton.addEventListener("click", () => {
   if (!nextSong) return;
 
   // Keep Back navigation sensible after a reshuffle.
-  if (historyIndex < songHistory.length - 1) {
-    songHistory = songHistory.slice(0, historyIndex + 1);
-  }
-  songHistory.push(nextSong);
-  historyIndex = songHistory.length - 1;
+  addToSongHistory(nextSong);
   currentSong = nextSong;
 
   saveQueue();
@@ -743,20 +751,18 @@ progress.addEventListener("input", () => {
 });
 
 document.getElementById("previousButton").addEventListener("click", () => {
-  if (historyIndex > 0) {
-    player.pause();
-    historyIndex--;
-    currentSong = songHistory[historyIndex];
-    saveQueue();
-    playSong(currentSong);
-  }
+  if (historyIndex <= 0 || !songHistory[historyIndex - 1]) return;
+  player.pause();
+  historyIndex--;
+  currentSong = songHistory[historyIndex];
+  saveQueue();
+  playSong(currentSong);
 });
 
 document.getElementById("skipButton").addEventListener("click", () => {
-  if (songs.length) {
-    player.pause();
-    playNext();
-  }
+  if (!songs.length) return;
+  player.pause();
+  playNext();
 });
 
 document.getElementById("exitButton").addEventListener("click", () => {
