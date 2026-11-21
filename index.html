@@ -214,11 +214,12 @@ function alignSideControls() {
   const volumeSlider = document.getElementById("volume");
   const volumeIcon = document.querySelector(".volume-icon");
   const updateButton = document.getElementById("updateButton");
+  const updateCount = document.getElementById("updateCount");
   const shuffleButton = document.getElementById("shuffleButton");
   const autoSkipButton = document.getElementById("autoSkipButton");
   const exitButton = document.getElementById("exitButton");
   if (!main || !mark || !brandRow || !brandActions || !volumeControl ||
-      !volumeSlider || !volumeIcon || !updateButton || !shuffleButton ||
+      !volumeSlider || !volumeIcon || !updateButton || !updateCount || !shuffleButton ||
       !autoSkipButton || !exitButton) return;
 
   const mainRect = main.getBoundingClientRect();
@@ -249,6 +250,8 @@ function alignSideControls() {
   const timerTop = sliderBottom - autoSkipButton.offsetHeight - brandRect.top;
   const buttonSize = updateButton.offsetHeight;
   updateButton.style.top = `${updateTop}px`;
+  // Keep the result count directly below Update, never over the Reshuffle button.
+  updateCount.style.top = `${updateTop + buttonSize + 4}px`;
   autoSkipButton.style.top = `${timerTop}px`;
   // Reshuffle centre is exactly halfway between Update and Timer centres.
   const shuffleTop = ((updateTop + buttonSize / 2) + (timerTop + buttonSize / 2)) / 2 - shuffleButton.offsetHeight / 2;
