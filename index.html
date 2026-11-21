@@ -357,6 +357,7 @@ let currentSong = null;
   let songHistory = [];
 let historyIndex = -1;
 let starting = false;
+let playbackRequestId = 0;
 const queueKey = "myradio_queue_" + (accessToken || "no-token");
 const catalogueKey = "myradio_catalogue_" + (accessToken || "no-token");
 const updateBaselineKey = "myradio_update_baseline_" + (accessToken || "no-token");
@@ -460,11 +461,30 @@ if (
   remaining = saved.remainingIds
     .map(id => songMap.get(String(id)))
     .filter(Boolean);
-  songHistory = Array.isArray(saved.historyIds)
-    ? saved.historyIds.map(id => songMap.get(String(id))).filter(Boolean).slice(-100)
-    : [];
+  // Restore full history snapshots where available. Older queues contain only IDs.
+  const rawHistory = Array.isArray(saved.historySongs)
+    ? saved.historySongs
+    : (Array.isArray(saved.historyIds) ? saved.historyIds : []);
+  const originalIndex = Number.isInteger(Number(saved.historyIndex))
+    ? Number(saved.historyIndex)
+    : rawHistory.length - 1;
+  const restoredHistory = rawHistory.map((entry, originalPosition) => {
+    const id = typeof entry === "object" && entry !== null ? entry.id : entry;
+    const currentCatalogueSong = songMap.get(String(id));
+    const song = currentCatalogueSong || (typeof entry === "object" && entry !== null ? entry : null);
+    return song && song.id != null ? { song, originalPosition } : null;
+  }).filter(Boolean).slice(-100);
+  songHistory = restoredHistory.map(entry => entry.song);
+  const savedCurrentId = saved.currentSongId == null ? null : String(saved.currentSongId);
+  if (savedCurrentId !== null) {
+    historyIndex = songHistory.map(song => String(song.id)).lastIndexOf(savedCurrentId);
+  } else {
+    // Account for history entries filtered out because they no longer exist in the catalogue.
+    const retainedAtOrBeforePointer = restoredHistory.filter(entry => entry.originalPosition <= originalIndex).length;
+    historyIndex = retainedAtOrBeforePointer - 1;
+  }
   historyIndex = songHistory.length
-    ? Math.min(Math.max(Number(saved.historyIndex ?? songHistory.length - 1), 0), songHistory.length - 1)
+    ? Math.min(Math.max(historyIndex, -1), songHistory.length - 1)
     : -1;
 } else {
   remaining = shuffleSongs(songs);
@@ -510,6 +530,8 @@ function playNext() {
 }
 
 function playSong(song) {
+  if (!song || song.id == null) return;
+  const requestId = ++playbackRequestId;
   autoSkipTriggered = false;
   songTitle.textContent = song.name.replace(/\.mp3$/i, "");
 
@@ -521,16 +543,25 @@ function playSong(song) {
     });
   }
 
+  // Replace the source only after invalidating any earlier pending play request.
+  player.pause();
   player.src = `${API}/api/audio?id=${encodeURIComponent(song.id)}&access=${encodeURIComponent(accessToken || "")}`;
   player.load();
 
-  player.play().then(() => {
+  const playAttempt = player.play();
+  if (playAttempt && typeof playAttempt.then === "function") {
+    playAttempt.then(() => {
+      if (requestId === playbackRequestId) starting = false;
+    }).catch(error => {
+      // A newer navigation may intentionally cancel this request.
+      if (requestId !== playbackRequestId || error.name === "AbortError") return;
+      console.error("Playback error:", error);
+      songTitle.textContent = song.name.replace(/\.mp3$/i, "");
+      starting = false;
+    });
+  } else {
     starting = false;
-  }).catch(error => {
-    console.error("Playback error:", error);
-    songTitle.textContent = song.name.replace(/\.mp3$/i, "");
-    starting = false;
-  });
+  }
 }
 
 player.addEventListener("ended", playNext);
@@ -586,7 +617,9 @@ function saveQueue() {
       allIds: songs.map(song => String(song.id)).sort(),
       remainingIds: remaining.map(song => String(song.id)),
       historyIds: songHistory.map(song => String(song.id)),
-      historyIndex: historyIndex
+      historySongs: songHistory.map(song => ({ id: song.id, name: song.name, type: song.type, extension: song.extension })),
+      historyIndex: historyIndex,
+      currentSongId: currentSong ? String(currentSong.id) : null
     }));
   } catch (error) {
     console.error("Queue could not be saved:", error);
@@ -751,17 +784,18 @@ progress.addEventListener("input", () => {
 });
 
 document.getElementById("previousButton").addEventListener("click", () => {
-  if (historyIndex <= 0 || !songHistory[historyIndex - 1]) return;
-  player.pause();
-  historyIndex--;
-  currentSong = songHistory[historyIndex];
+  const targetIndex = historyIndex - 1;
+  const targetSong = targetIndex >= 0 ? songHistory[targetIndex] : null;
+  if (!targetSong) return;
+
+  historyIndex = targetIndex;
+  currentSong = targetSong;
   saveQueue();
-  playSong(currentSong);
+  playSong(targetSong);
 });
 
 document.getElementById("skipButton").addEventListener("click", () => {
   if (!songs.length) return;
-  player.pause();
   playNext();
 });
 
