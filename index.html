@@ -12,14 +12,14 @@
     main { position:relative; width:min(100%,520px); max-height:calc(100svh - 16px); text-align:center; background:rgba(21,28,46,.92); border:1px solid #2b3650; border-radius:28px; padding:36px 28px 34px; box-shadow:0 24px 70px #0005; }
     .mark { width:76px; height:76px; margin:0 auto 20px; display:grid; place-items:center; border-radius:24px; background:linear-gradient(135deg,#8b9cff,#b48bff); color:#10162a; }
     .brand-row { position:relative; display:flex; align-items:center; justify-content:center; width:100%; min-height:48px; }
-    .brand-actions { position:absolute; left:calc((100% - 288px)/2 + 9px); top:0; width:38px; height:0; z-index:5; }
+    .brand-actions { position:absolute; left:calc((100% - 288px)/2); top:0; width:38px; height:215px; z-index:5; }
     .brand-actions > button { position:absolute; left:0; }
-    #updateButton { top:0; }
-    .update-count { position:absolute; top:40px; left:0; width:38px; }
-    .shuffle-action { top:0; }
-    .auto-skip-action { top:0; background:#a18bff; color:#101626; border-color:#a18bff; font-size:17px; font-weight:850; padding:0; }
+    #updateButton { top:5px; }
+    .update-count { position:absolute; top:45px; left:0; width:38px; }
+    .shuffle-action { top:91px; }
+    .auto-skip-action { top:177px; background:#a18bff; color:#101626; border-color:#a18bff; font-size:17px; font-weight:850; padding:0; }
     .auto-skip-action:hover { background:#b7a7ff; }
-    .auto-skip-popup { position:absolute; left:calc((100% - 288px)/2 + 1px); top:calc(50% + 74px); z-index:20; width:190px; padding:10px; border:1px solid #536080; border-radius:15px; background:#202a43; box-shadow:0 12px 32px #0009; display:none; }
+    .auto-skip-popup { position:absolute; left:calc((100% - 288px)/2 - 8px); top:calc(50% + 74px); z-index:20; width:190px; padding:10px; border:1px solid #536080; border-radius:15px; background:#202a43; box-shadow:0 12px 32px #0009; display:none; }
     .auto-skip-popup.open { display:block; }
     .auto-skip-options { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
     .auto-skip-option { min-height:34px; border:1px solid #7180a2; border-radius:9px; background:#34415f; color:#fff; font:700 13px system-ui,sans-serif; cursor:pointer; }
@@ -36,11 +36,13 @@
     .shuffle-action.is-shuffling { background:#cfd8ff; box-shadow:0 0 0 3px #a18bff55; }
     @keyframes shuffleTurn { from { transform:rotate(0deg) scale(1); } to { transform:rotate(360deg) scale(1.08); } }
     @media (max-width:420px) {
-      .brand-actions { left:calc((100% - 288px)/2 + 9px); width:36px; }
+      .brand-actions { left:calc((100% - 288px)/2); width:36px; height:216px; }
       .header-action { width:36px; height:36px; }
-      .update-count { width:36px; }
-      .auto-skip-action { font-size:17px; }
-      .auto-skip-popup { left:calc((100% - 288px)/2 + 3px); top:calc(50% + 75px); width:184px; }
+      #updateButton { top:6px; }
+      .update-count { top:44px; width:36px; }
+      .shuffle-action { top:93px; }
+      .auto-skip-action { top:180px; font-size:17px; }
+      .auto-skip-popup { left:calc((100% - 288px)/2 - 6px); top:calc(50% + 75px); width:184px; }
     }
     .update-dots { display:none; gap:3px; align-items:center; justify-content:center; }
     .update-count { display:none; min-width:20px; color:#ffffff; font-size:13px; line-height:1; font-weight:700; text-align:center; font-variant-numeric:tabular-nums; }
@@ -57,14 +59,20 @@
     .tagline { margin:0 0 34px; color:var(--muted); font-size:1rem; line-height:1.7; }
     .wait { margin:0; color:#fff; font-size:1.08rem; font-weight:650; line-height:1.7; }
     .pulse { display:inline-block; width:8px; height:8px; margin-right:9px; border-radius:50%; background:#a18bff; vertical-align:middle; }
-    .volume-control { position:absolute; right:calc(50% - 129px); top:74px; height:220px; width:28px; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:9px; z-index:2; }
-    #volume { -webkit-appearance:none; appearance:none; writing-mode:vertical-lr; direction:rtl; width:24px; height:calc(100% - 33px); min-height:90px; margin:0; padding:0; cursor:pointer; background:transparent; touch-action:none; flex:1 1 auto; }
-    #volume::-webkit-slider-runnable-track { width:9px; height:var(--slider-track-height,100%); border-radius:99px; background:linear-gradient(to top,#ffffff 0%,#ffffff var(--volume-fill,80%),#8793ad var(--volume-fill,80%),#8793ad 100%); border:1px solid #dce5ff; }
+    .volume-control { position:absolute; right:calc(50% - 129px); top:137px; height:210px; width:28px; display:flex; flex-direction:column; align-items:center; justify-content:space-between; z-index:2; }
+    #volume { -webkit-appearance:none; appearance:none; writing-mode:vertical-lr; direction:rtl; width:24px; height:174px; margin:0; padding:0; cursor:pointer; background:transparent; touch-action:none; }
+    #volume::-webkit-slider-runnable-track { width:9px; height:174px; border-radius:99px; background:linear-gradient(to top,#ffffff 0%,#ffffff var(--volume-fill,80%),#8793ad var(--volume-fill,80%),#8793ad 100%); border:1px solid #dce5ff; }
     #volume::-webkit-slider-thumb { -webkit-appearance:none; width:26px; height:26px; margin-left:-8px; border-radius:50%; background:#ffffff; border:2px solid #dce5ff; box-shadow:0 1px 5px #0008; }
-    #volume::-moz-range-track { width:9px; height:var(--slider-track-height,100%); border-radius:99px; background:#8793ad; border:1px solid #dce5ff; }
+    #volume::-moz-range-track { width:9px; height:174px; border-radius:99px; background:#8793ad; border:1px solid #dce5ff; }
     #volume::-moz-range-progress { width:9px; border-radius:99px; background:#ffffff; }
     #volume::-moz-range-thumb { width:24px; height:24px; border-radius:50%; background:#ffffff; border:2px solid #dce5ff; box-shadow:0 1px 5px #0008; }
     .volume-icon { width:24px; height:24px; color:#ffffff; display:block; }
+    @media (max-width:420px) {
+      .volume-control { right:calc(50% - 129px); top:132px; height:210px; }
+      #volume { height:174px; }
+      #volume::-webkit-slider-runnable-track { height:174px; }
+      #volume::-moz-range-track { height:174px; }
+    }
     @media (max-width:420px) { main { padding:30px 20px; } .subtitle { font-size:1.15rem; } }
   </style>
 </head>
@@ -199,61 +207,6 @@ async function getDeviceName() {
 }
   const player = document.getElementById("player");
 
-// Keep the side controls aligned to the actual player geometry on both laptop and mobile.
-function alignSideControls() {
-  const main = document.querySelector("main");
-  const mark = document.querySelector(".mark");
-  const brandRow = document.querySelector(".brand-row");
-  const brandActions = document.querySelector(".brand-actions");
-  const volumeControl = document.querySelector(".volume-control");
-  const volumeSlider = document.getElementById("volume");
-  const volumeIcon = document.querySelector(".volume-icon");
-  const updateButton = document.getElementById("updateButton");
-  const shuffleButton = document.getElementById("shuffleButton");
-  const autoSkipButton = document.getElementById("autoSkipButton");
-  const exitButton = document.getElementById("exitButton");
-  if (!main || !mark || !brandRow || !brandActions || !volumeControl ||
-      !volumeSlider || !volumeIcon || !updateButton || !shuffleButton ||
-      !autoSkipButton || !exitButton) return;
-
-  const mainRect = main.getBoundingClientRect();
-  const markRect = mark.getBoundingClientRect();
-  const brandRect = brandRow.getBoundingClientRect();
-  const exitRect = exitButton.getBoundingClientRect();
-
-  // Slider begins at the vertical midpoint of the MyRadio mark.
-  const sliderTop = markRect.top + markRect.height / 2;
-  // Keep the volume icon safely above the Exit/Close button.
-  const iconBottom = exitRect.top - 12;
-  const iconHeight = 24;
-  const gap = 9;
-  const sliderHeight = Math.max(90, iconBottom - sliderTop - iconHeight - gap);
-  const controlHeight = sliderHeight + gap + iconHeight;
-
-  volumeControl.style.top = `${sliderTop - mainRect.top}px`;
-  volumeControl.style.height = `${controlHeight}px`;
-  volumeSlider.style.height = `${sliderHeight}px`;
-  volumeSlider.style.flex = "0 0 auto";
-  volumeSlider.style.setProperty("--slider-track-height", `${sliderHeight}px`);
-
-  // Update top aligns with the slider's top.
-  const updateTop = sliderTop - brandRect.top;
-  // Timer bottom aligns with the bottom of the volume slider,
-  // leaving the volume icon below it.
-  const sliderBottom = sliderTop + sliderHeight;
-  const timerTop = sliderBottom - autoSkipButton.offsetHeight - brandRect.top;
-  const buttonSize = updateButton.offsetHeight;
-  updateButton.style.top = `${updateTop}px`;
-  autoSkipButton.style.top = `${timerTop}px`;
-  // Reshuffle centre is exactly halfway between Update and Timer centres.
-  const shuffleTop = ((updateTop + buttonSize / 2) + (timerTop + buttonSize / 2)) / 2 - shuffleButton.offsetHeight / 2;
-  shuffleButton.style.top = `${shuffleTop}px`;
-}
-
-window.addEventListener("resize", alignSideControls, { passive: true });
-window.addEventListener("orientationchange", () => requestAnimationFrame(alignSideControls), { passive: true });
-requestAnimationFrame(() => requestAnimationFrame(alignSideControls));
-
 // Auto-Skip preference persists on this device.
 const autoSkipButton = document.getElementById("autoSkipButton");
 const autoSkipPopup = document.getElementById("autoSkipPopup");
@@ -262,16 +215,6 @@ const autoSkipLabels = { full: "F", half: "½", "1": "1m", "2": "2m", "3": "3m",
 let autoSkipChoice = "full";
 let autoSkipTriggered = false;
 let deferAutoSkipForSongId = null;
-let autoSkipPopupTimer = null;
-
-function closeAutoSkipPopup() {
-  autoSkipPopup.classList.remove("open");
-  autoSkipButton.setAttribute("aria-expanded", "false");
-  if (autoSkipPopupTimer !== null) {
-    clearTimeout(autoSkipPopupTimer);
-    autoSkipPopupTimer = null;
-  }
-}
 try {
   const savedAutoSkip = localStorage.getItem("myradio_auto_skip");
   if (savedAutoSkip && Object.prototype.hasOwnProperty.call(autoSkipLabels, savedAutoSkip)) {
@@ -301,14 +244,8 @@ function autoSkipThreshold() {
 
 autoSkipButton.addEventListener("click", () => {
   const opening = !autoSkipPopup.classList.contains("open");
-  if (opening) {
-    autoSkipPopup.classList.add("open");
-    autoSkipButton.setAttribute("aria-expanded", "true");
-    if (autoSkipPopupTimer !== null) clearTimeout(autoSkipPopupTimer);
-    autoSkipPopupTimer = setTimeout(closeAutoSkipPopup, 6000);
-  } else {
-    closeAutoSkipPopup();
-  }
+  autoSkipPopup.classList.toggle("open", opening);
+  autoSkipButton.setAttribute("aria-expanded", String(opening));
 });
 
 autoSkipOptions.forEach(option => {
@@ -330,13 +267,15 @@ autoSkipOptions.forEach(option => {
     autoSkipTriggered = false;
     try { localStorage.setItem("myradio_auto_skip", autoSkipChoice); } catch (error) {}
     refreshAutoSkipButton();
-    closeAutoSkipPopup();
+    autoSkipPopup.classList.remove("open");
+    autoSkipButton.setAttribute("aria-expanded", "false");
   });
 });
 
 document.addEventListener("click", event => {
   if (!autoSkipPopup.contains(event.target) && !autoSkipButton.contains(event.target)) {
-    closeAutoSkipPopup();
+    autoSkipPopup.classList.remove("open");
+    autoSkipButton.setAttribute("aria-expanded", "false");
   }
 });
 const songTitle = document.getElementById("songTitle");
@@ -364,6 +303,8 @@ let currentSong = null;
 let historyIndex = -1;
 let starting = false;
 const queueKey = "myradio_queue_" + (accessToken || "no-token");
+const catalogueKey = "myradio_catalogue_" + (accessToken || "no-token");
+const updateBaselineKey = "myradio_update_baseline_" + (accessToken || "no-token");
 
 function shuffleSongs(list) {
   const result = [...list];
@@ -381,31 +322,65 @@ async function startRadio() {
   if (!songs.length) {
     songTitle.textContent = "गाने लोड हो रहे हैं…";
     try {
-      const deviceName = await getDeviceName();
-
-const response = await fetch(
-  `${API}/api/files?access=${encodeURIComponent(accessToken || "")}&device=${encodeURIComponent(deviceName)}&deviceId=${encodeURIComponent(deviceShortId)}`
-);
-      const data = await response.json();
-
-      if (!response.ok || !data.success || !data.items) {
-        throw new Error("Playlist could not be loaded");
+      // Prefer the locally saved full catalogue. Box is contacted at startup
+      // only on first setup or when the local catalogue is unavailable.
+      let cachedCatalogue = null;
+      try {
+        cachedCatalogue = JSON.parse(localStorage.getItem(catalogueKey) || "null");
+      } catch (error) {
+        cachedCatalogue = null;
       }
 
-      songs = data.items.filter(song =>
-        song.type === "file" &&
-        (song.extension || song.name.split(".").pop())
-          .toLowerCase() === "mp3"
-      );
-      if (!songs.length) throw new Error("No MP3 files found");
-const currentIds = songs.map(song => String(song.id)).sort();
-let saved = null;
+      if (Array.isArray(cachedCatalogue) && cachedCatalogue.length) {
+        songs = cachedCatalogue;
+      } else {
+        const deviceName = await getDeviceName();
+        const response = await fetch(
+          `${API}/api/files?access=${encodeURIComponent(accessToken || "")}&device=${encodeURIComponent(deviceName)}&deviceId=${encodeURIComponent(deviceShortId)}`
+        );
+        const data = await response.json();
 
-try {
-  saved = JSON.parse(localStorage.getItem(queueKey) || "null");
-} catch (error) {
-  saved = null;
-}
+        if (!response.ok || !data.success || !Array.isArray(data.items)) {
+          throw new Error("Playlist could not be loaded");
+        }
+
+        songs = data.items.filter(song =>
+          song.type === "file" &&
+          (song.extension || song.name.split(".").pop()).toLowerCase() === "mp3"
+        );
+        if (!songs.length) throw new Error("No MP3 files found");
+
+        try {
+          localStorage.setItem(catalogueKey, JSON.stringify(songs));
+        } catch (storageError) {
+          console.warn("Song catalogue could not be cached locally:", storageError);
+        }
+      }
+
+      const currentIds = songs.map(song => String(song.id)).sort();
+
+      // On the first run after this upgrade, use the old saved queue IDs as
+      // the comparison baseline. This lets the first manual Update count
+      // songs added since the user's previous catalogue was saved.
+      try {
+        if (!localStorage.getItem(updateBaselineKey)) {
+          let oldQueue = null;
+          try { oldQueue = JSON.parse(localStorage.getItem(queueKey) || "null"); } catch (error) {}
+          const baselineIds = oldQueue && Array.isArray(oldQueue.allIds)
+            ? oldQueue.allIds.map(String)
+            : currentIds;
+          localStorage.setItem(updateBaselineKey, JSON.stringify(baselineIds));
+        }
+      } catch (storageError) {
+        console.warn("Update baseline could not be saved:", storageError);
+      }
+
+      let saved = null;
+      try {
+        saved = JSON.parse(localStorage.getItem(queueKey) || "null");
+      } catch (error) {
+        saved = null;
+      }
 
 if (
   saved &&
@@ -596,7 +571,7 @@ updateButton.addEventListener("click", async () => {
       `${API}/api/files?access=${encodeURIComponent(accessToken || "")}&device=${encodeURIComponent(deviceName)}&deviceId=${encodeURIComponent(deviceShortId)}`
     );
     const data = await response.json();
-    if (!response.ok || !data.success || !data.items) {
+    if (!response.ok || !data.success || !Array.isArray(data.items)) {
       throw new Error("Playlist could not be updated");
     }
 
@@ -606,18 +581,40 @@ updateButton.addEventListener("click", async () => {
     );
     if (!refreshedSongs.length) throw new Error("No MP3 files found");
 
-    const previousIds = new Set(songs.map(song => String(song.id)));
+    let previousIds = new Set(songs.map(song => String(song.id)));
+    try {
+      const savedBaseline = JSON.parse(localStorage.getItem(updateBaselineKey) || "null");
+      if (Array.isArray(savedBaseline)) previousIds = new Set(savedBaseline.map(String));
+    } catch (error) {}
+
     const newlyAddedCount = refreshedSongs.filter(
       song => !previousIds.has(String(song.id))
     ).length;
+    const refreshedIds = new Set(refreshedSongs.map(song => String(song.id)));
+    const removedCount = [...previousIds].filter(id => !refreshedIds.has(id)).length;
+    // Show additions as a positive count, removals as a negative count.
+    // If both happen in one update, show both changes (for example +2/-1).
+    const updateCountText = newlyAddedCount && removedCount
+      ? `+${newlyAddedCount}/-${removedCount}`
+      : removedCount
+        ? `-${removedCount}`
+        : String(newlyAddedCount);
 
+    // Commit the refreshed catalogue and comparison baseline only after the
+    // Box request has succeeded and a usable MP3 list has been received.
     songs = refreshedSongs;
+    try {
+      localStorage.setItem(catalogueKey, JSON.stringify(songs));
+      localStorage.setItem(updateBaselineKey, JSON.stringify(songs.map(song => String(song.id)).sort()));
+    } catch (storageError) {
+      console.warn("Updated catalogue could not be fully cached locally:", storageError);
+    }
     remaining = shuffleSongs(songs.filter(
       song => !currentSong || String(song.id) !== String(currentSong.id)
     ));
     saveQueue();
     const updateCount = document.getElementById("updateCount");
-    updateCount.textContent = String(newlyAddedCount);
+    updateCount.textContent = updateCountText;
     updateCount.classList.add("visible");
     window.clearTimeout(window.myRadioUpdateCountTimer);
     window.myRadioUpdateCountTimer = window.setTimeout(() => {
