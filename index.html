@@ -146,7 +146,7 @@
     </button>
 
     <button id="exitButton" type="button" aria-label="Exit"
-      style="width:54px;height:54px;flex-shrink:0;border:0;border-radius:50%;background:#dce5ff;color:#172554;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center">
+      style="position:relative;z-index:10;pointer-events:auto;width:54px;height:54px;flex-shrink:0;border:0;border-radius:50%;background:#dce5ff;color:#172554;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center">
       ✕
     </button>
 
@@ -821,18 +821,20 @@ document.getElementById("skipButton").addEventListener("click", () => {
   }
 });
 
-document.getElementById("exitButton").addEventListener("click", () => {
+document.getElementById("exitButton").addEventListener("click", (event) => {
+  event.preventDefault();
+  event.stopPropagation();
   player.pause();
 
-  // Return to the page/app that opened MyRadio whenever browser history
-  // or a referring page is available. Do not try to close the Chrome window.
-  if (window.history.length > 1) {
+  // Prefer the page that directly opened MyRadio (for example WhatsApp).
+  // If Chrome did not provide a referrer, use the tab's Back history.
+  const originPage = document.referrer;
+  if (originPage && originPage !== window.location.href) {
+    window.location.replace(originPage);
+  } else if (window.history.length > 1) {
     window.history.back();
-  } else if (document.referrer) {
-    window.location.replace(document.referrer);
   } else {
-    // Chrome does not allow a webpage to close a tab it did not open.
-    // With no referrer/history, leave the paused player open.
+    // A webpage cannot close a Chrome tab that it did not open.
     console.info("MyRadio paused. Use Chrome Back to return to the previous app.");
   }
 });
