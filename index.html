@@ -784,38 +784,30 @@ progress.addEventListener("input", () => {
 });
 
 document.getElementById("previousButton").addEventListener("click", () => {
-  // Reconcile the pointer with the song actually playing before going back.
-  // This prevents a stale historyIndex from making Previous appear disabled.
+  // Always locate the currently playing song's latest position in history.
+  // A song may appear more than once after the shuffle queue cycles.
   if (!songHistory.length) return;
 
-  let currentIndex = historyIndex;
   const currentId = currentSong && currentSong.id != null
     ? String(currentSong.id)
     : null;
 
-  if (
-    currentId !== null &&
-    (
-      currentIndex < 0 ||
-      currentIndex >= songHistory.length ||
-      String(songHistory[currentIndex]?.id) !== currentId
-    )
-  ) {
-    // A song can occur more than once after a reshuffle; use its latest
-    // occurrence, which represents the currently playing instance.
-    currentIndex = songHistory.map(song => String(song.id)).lastIndexOf(currentId);
+  let currentIndex = currentId === null
+    ? -1
+    : songHistory.map(song => String(song.id)).lastIndexOf(currentId);
+
+  // Fall back to the saved pointer only if the current song is not in history.
+  if (currentIndex < 0 && Number.isInteger(historyIndex)) {
+    currentIndex = historyIndex;
   }
 
-  if (currentIndex <= 0) return;
+  if (currentIndex <= 0 || currentIndex >= songHistory.length) return;
 
-  const targetIndex = currentIndex - 1;
-  const previousSong = songHistory[targetIndex];
+  const previousSong = songHistory[currentIndex - 1];
   if (!previousSong || previousSong.id == null) return;
 
-  // Pause before changing the source, exactly as in the original working
-  // player. Update state together so the next click can go back again.
   player.pause();
-  historyIndex = targetIndex;
+  historyIndex = currentIndex - 1;
   currentSong = previousSong;
   saveQueue();
   playSong(previousSong);
