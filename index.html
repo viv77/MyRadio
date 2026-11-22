@@ -784,19 +784,25 @@ progress.addEventListener("input", () => {
 });
 
 document.getElementById("previousButton").addEventListener("click", () => {
-  const targetIndex = historyIndex - 1;
-  const targetSong = targetIndex >= 0 ? songHistory[targetIndex] : null;
-  if (!targetSong) return;
+  // Match the previously working navigation: pause first, then move the
+  // history pointer back exactly one song and start that song.
+  if (historyIndex > 0) {
+    const previousSong = songHistory[historyIndex - 1];
+    if (!previousSong) return;
 
-  historyIndex = targetIndex;
-  currentSong = targetSong;
-  saveQueue();
-  playSong(targetSong);
+    player.pause();
+    historyIndex--;
+    currentSong = previousSong;
+    saveQueue();
+    playSong(currentSong);
+  }
 });
 
 document.getElementById("skipButton").addEventListener("click", () => {
-  if (!songs.length) return;
-  playNext();
+  if (songs.length) {
+    player.pause();
+    playNext();
+  }
 });
 
 document.getElementById("exitButton").addEventListener("click", () => {
