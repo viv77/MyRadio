@@ -602,21 +602,6 @@ if ("mediaSession" in navigator) {
 
 const playPause = document.getElementById("playPause");
 const progress = document.getElementById("progress");
-
-// A normal Chrome webpage cannot hide only the address bar. Once the user
-// interacts with the playing radio, request browser fullscreen (which hides
-// the full browser toolbar). This is attempted only once per page load.
-let radioFullscreenRequested = false;
-document.addEventListener("click", (event) => {
-  if (radioFullscreenRequested || player.paused) return;
-  if (event.target && event.target.closest("#exitButton")) return;
-  if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-    radioFullscreenRequested = true;
-    document.documentElement.requestFullscreen().catch((error) => {
-      console.info("Fullscreen was not enabled by the browser:", error);
-    });
-  }
-}, true);
 const currentTime = document.getElementById("currentTime");
 const duration = document.getElementById("duration");
 
