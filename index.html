@@ -826,12 +826,27 @@ document.getElementById("exitButton").addEventListener("click", (event) => {
   event.stopPropagation();
   player.pause();
 
-  // Restore the original behaviour: close if Chrome permits it;
-  // otherwise return to the previous page in this tab.
-  window.close();
-  window.setTimeout(() => {
-    window.history.back();
-  }, 300);
+  // Non-Android (PC etc.): close the tab if allowed, else go back a page.
+  if (!/Android/i.test(navigator.userAgent)) {
+    window.close();
+    window.setTimeout(() => { window.history.back(); }, 300);
+    return;
+  }
+
+  // Android: bring WhatsApp to the front FIRST, then close this Chrome tab
+  // while it is in the background (so the user is not left inside Chrome).
+  let tabClosed = false;
+  const closeTab = () => {
+    if (tabClosed) return;
+    tabClosed = true;
+    window.close();
+  };
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) closeTab();
+  });
+  window.location.href = "intent://send/#Intent;scheme=whatsapp;package=com.whatsapp;end";
+  // Fallback if WhatsApp could not be opened: just close the tab.
+  window.setTimeout(closeTab, 1500);
 });
   player.addEventListener("error", () => {
   console.error("Audio element error:", player.error);
