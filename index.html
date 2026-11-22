@@ -12,8 +12,8 @@
     main { position:relative; width:min(100%,520px); max-height:calc(100svh - 16px); text-align:center; background:rgba(21,28,46,.92); border:1px solid #2b3650; border-radius:28px; padding:36px 28px 34px; box-shadow:0 24px 70px #0005; }
     .mark { width:76px; height:76px; margin:0 auto 20px; display:grid; place-items:center; border-radius:24px; background:linear-gradient(135deg,#8b9cff,#b48bff); color:#10162a; }
     .brand-row { position:relative; display:flex; align-items:center; justify-content:center; width:100%; min-height:48px; }
-    .brand-actions { position:absolute; left:calc((100% - 288px)/2 + 8px); top:0; width:38px; height:215px; z-index:5; }
-    .brand-actions > button { position:absolute; left:0; }
+    .brand-actions { position:absolute; left:calc((100% - 288px)/2 + 8px); top:0; width:38px; height:215px; z-index:5; pointer-events:none; /* invisible box must not block Previous button taps */ }
+    .brand-actions > button { position:absolute; left:0; pointer-events:auto; }
     #updateButton { top:5px; }
     .update-count { position:absolute; top:45px; left:0; width:38px; }
     .shuffle-action { top:91px; }
