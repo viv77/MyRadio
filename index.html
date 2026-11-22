@@ -821,22 +821,9 @@ document.getElementById("skipButton").addEventListener("click", () => {
   }
 });
 
-document.getElementById("exitButton").addEventListener("click", (event) => {
-  event.preventDefault();
-  event.stopPropagation();
+document.getElementById("exitButton").addEventListener("click", () => {
   player.pause();
-
-  // Prefer the page that directly opened MyRadio (for example WhatsApp).
-  // If Chrome did not provide a referrer, use the tab's Back history.
-  const originPage = document.referrer;
-  if (originPage && originPage !== window.location.href) {
-    window.location.replace(originPage);
-  } else if (window.history.length > 1) {
-    window.history.back();
-  } else {
-    // A webpage cannot close a Chrome tab that it did not open.
-    console.info("MyRadio paused. Use Chrome Back to return to the previous app.");
-  }
+  window.history.back();
 });
   player.addEventListener("error", () => {
   console.error("Audio element error:", player.error);
