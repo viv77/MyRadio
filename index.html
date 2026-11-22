@@ -826,12 +826,18 @@ document.getElementById("exitButton").addEventListener("click", (event) => {
   event.stopPropagation();
   player.pause();
 
-  // Restore the original behaviour: close if Chrome permits it;
-  // otherwise return to the previous page in this tab.
+  // 1) Close this tab if Chrome permits it.
   window.close();
+
+  // 2) Chrome usually refuses to close a tab opened from another app, so
+  //    take the user back to WhatsApp (where the MyRadio link was tapped).
   window.setTimeout(() => {
-    window.history.back();
-  }, 300);
+    if (/Android/i.test(navigator.userAgent)) {
+      window.location.href = "intent://send/#Intent;scheme=whatsapp;package=com.whatsapp;end";
+    } else {
+      window.history.back();
+    }
+  }, 250);
 });
   player.addEventListener("error", () => {
   console.error("Audio element error:", player.error);
