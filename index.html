@@ -784,18 +784,41 @@ progress.addEventListener("input", () => {
 });
 
 document.getElementById("previousButton").addEventListener("click", () => {
-  // Match the previously working navigation: pause first, then move the
-  // history pointer back exactly one song and start that song.
-  if (historyIndex > 0) {
-    const previousSong = songHistory[historyIndex - 1];
-    if (!previousSong) return;
+  // Reconcile the pointer with the song actually playing before going back.
+  // This prevents a stale historyIndex from making Previous appear disabled.
+  if (!songHistory.length) return;
 
-    player.pause();
-    historyIndex--;
-    currentSong = previousSong;
-    saveQueue();
-    playSong(currentSong);
+  let currentIndex = historyIndex;
+  const currentId = currentSong && currentSong.id != null
+    ? String(currentSong.id)
+    : null;
+
+  if (
+    currentId !== null &&
+    (
+      currentIndex < 0 ||
+      currentIndex >= songHistory.length ||
+      String(songHistory[currentIndex]?.id) !== currentId
+    )
+  ) {
+    // A song can occur more than once after a reshuffle; use its latest
+    // occurrence, which represents the currently playing instance.
+    currentIndex = songHistory.map(song => String(song.id)).lastIndexOf(currentId);
   }
+
+  if (currentIndex <= 0) return;
+
+  const targetIndex = currentIndex - 1;
+  const previousSong = songHistory[targetIndex];
+  if (!previousSong || previousSong.id == null) return;
+
+  // Pause before changing the source, exactly as in the original working
+  // player. Update state together so the next click can go back again.
+  player.pause();
+  historyIndex = targetIndex;
+  currentSong = previousSong;
+  saveQueue();
+  playSong(previousSong);
 });
 
 document.getElementById("skipButton").addEventListener("click", () => {
