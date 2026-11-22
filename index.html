@@ -146,7 +146,7 @@
     </button>
 
     <button id="exitButton" type="button" aria-label="Exit"
-      style="position:relative;z-index:10;pointer-events:auto;width:54px;height:54px;flex-shrink:0;border:0;border-radius:50%;background:#dce5ff;color:#172554;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center">
+      style="position:relative;z-index:50;pointer-events:auto;width:54px;height:54px;flex-shrink:0;border:0;border-radius:50%;background:#dce5ff;color:#172554;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center">
       ✕
     </button>
 
@@ -821,9 +821,17 @@ document.getElementById("skipButton").addEventListener("click", () => {
   }
 });
 
-document.getElementById("exitButton").addEventListener("click", () => {
+document.getElementById("exitButton").addEventListener("click", (event) => {
+  event.preventDefault();
+  event.stopPropagation();
   player.pause();
-  window.history.back();
+
+  // Restore the original behaviour: close if Chrome permits it;
+  // otherwise return to the previous page in this tab.
+  window.close();
+  window.setTimeout(() => {
+    window.history.back();
+  }, 300);
 });
   player.addEventListener("error", () => {
   console.error("Audio element error:", player.error);
