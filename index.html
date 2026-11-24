@@ -10,7 +10,7 @@
     * { box-sizing: border-box; }
     body { position:fixed; inset:0; width:100%; height:100svh; min-height:100svh; margin:0; display:grid; place-items:center; overflow:hidden; overscroll-behavior:none; padding:max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); font-family:system-ui,-apple-system,"Noto Sans Devanagari","Mangal",sans-serif; color:var(--text); background:radial-gradient(ellipse at top,#202a49 0%,var(--bg) 58%); }
     main { position:relative; width:min(100%,520px); max-height:calc(100svh - 16px); text-align:center; background:rgba(21,28,46,.92); border:1px solid #2b3650; border-radius:28px; padding:36px 28px 34px; box-shadow:0 24px 70px #0005; }
-    .mark { width:76px; height:76px; margin:0 auto 20px; display:grid; place-items:center; border-radius:24px; background:linear-gradient(135deg,#8b9cff,#b48bff); color:#10162a; }
+    .mark { width:58px; height:58px; margin:0 auto 8px; display:grid; place-items:center; border-radius:24px; background:linear-gradient(135deg,#8b9cff,#b48bff); color:#10162a; }
     .brand-row { position:relative; display:flex; align-items:center; justify-content:center; width:100%; min-height:48px; }
     .brand-actions { position:absolute; left:calc((100% - 288px)/2 + 8px); top:0; width:38px; height:215px; z-index:5; pointer-events:none; }
     .brand-actions > button { pointer-events:auto; }
@@ -26,6 +26,11 @@
     .auto-skip-option { min-height:34px; border:1px solid #7180a2; border-radius:9px; background:#34415f; color:#fff; font:700 13px system-ui,sans-serif; cursor:pointer; }
     .auto-skip-option.selected { background:#fff; color:#172554; border-color:#fff; }
     .auto-skip-option:focus-visible { outline:2px solid #a18bff; outline-offset:2px; }
+    .play-mode-toggle { display:flex; justify-content:center; align-items:center; gap:7px; margin:0 auto 8px; }
+    .play-mode-button { min-width:68px; height:30px; padding:0 15px; border:1px solid #7180a2; border-radius:999px; background:#26324d; color:#dce5ff; font:750 12px system-ui,sans-serif; letter-spacing:.07em; cursor:pointer; transition:background .15s ease,border-color .15s ease,color .15s ease; }
+    .play-mode-button.active { background:#a18bff; border-color:#a18bff; color:#101626; box-shadow:0 0 0 2px #a18bff30; }
+    .play-mode-button:disabled { opacity:.5; cursor:not-allowed; }
+    .play-mode-button:focus-visible { outline:2px solid #a18bff; outline-offset:2px; }
     .brand-title { min-width:0; display:flex; align-items:center; justify-content:center; }
     h1 { margin:0; font-size:clamp(2rem,7vw,2.7rem); letter-spacing:-.04em; white-space:nowrap; }
     .header-action { width:38px; height:38px; padding:7px; border:1px solid #dce5ff; border-radius:50%; background:#ffffff; color:#172554; display:grid; place-items:center; cursor:pointer; flex:0 0 auto; }
@@ -74,15 +79,36 @@
       #volume::-webkit-slider-runnable-track { height:174px; }
       #volume::-moz-range-track { height:174px; }
     }
-    @media (max-width:420px) { main { padding:30px 20px; } .subtitle { font-size:1.15rem; } }
+    @media (max-width:420px) { main { padding:30px 20px; } .subtitle { font-size:1.15rem; } .play-mode-button { min-width:64px; height:29px; } }
+    #settingsButton { position:absolute; top:12px; right:12px; z-index:60; width:34px; height:34px; border:1px solid #dce5ff; border-radius:50%; background:#ffffff; color:#172554; display:grid; place-items:center; cursor:pointer; font-size:18px; line-height:1; }
+    #settingsButton:focus-visible, #favouriteButton:focus-visible, .settings-action:focus-visible { outline:2px solid #a18bff; outline-offset:2px; }
+    .song-title-row { display:grid; grid-template-columns:38px minmax(0,1fr) 38px; align-items:center; gap:7px; margin-top:16px; }
+    #songTitle { min-width:0; margin:0 !important; overflow-wrap:anywhere; }
+    #favouriteButton { width:38px; height:38px; border:0; border-radius:50%; background:#26324d; color:#dce5ff; font-size:25px; line-height:1; cursor:pointer; display:grid; place-items:center; }
+    #favouriteButton.is-favourite { color:#ff6b8a; background:#3a263b; }
+    .settings-backdrop { position:fixed; inset:0; z-index:1000; display:none; place-items:center; padding:16px; background:#050914c9; }
+    .settings-backdrop.open { display:grid; }
+    .settings-panel { width:min(100%,360px); max-height:min(88svh,620px); overflow:auto; padding:20px; border:1px solid #536080; border-radius:20px; background:#18223a; box-shadow:0 18px 55px #000b; text-align:left; }
+    .settings-panel h2 { margin:0 0 5px; font-size:1.25rem; text-align:center; }
+    .settings-description { margin:0 0 15px; color:#c8d2f0; font-size:.86rem; text-align:center; }
+    .settings-status { min-height:20px; margin:10px 0; color:#c8d2f0; font-size:.82rem; text-align:center; overflow-wrap:anywhere; }
+    .settings-action { width:100%; min-height:42px; margin-top:9px; padding:9px 12px; border:1px solid #7180a2; border-radius:11px; background:#34415f; color:#fff; font:650 14px system-ui,sans-serif; cursor:pointer; }
+    .settings-action.primary { background:#a18bff; border-color:#a18bff; color:#101626; }
+    .settings-action:disabled { opacity:.5; cursor:not-allowed; }
+    .settings-note { margin:12px 0 0; color:#aebbd8; font-size:.75rem; line-height:1.45; text-align:center; }
   </style>
 </head>
 <body>
   <main>
+    <button id="settingsButton" type="button" aria-label="Settings" title="Settings">⚙</button>
     <div class="mark" aria-hidden="true">
       <svg width="42" height="42" viewBox="0 0 48 48" fill="none">
         <path d="M8 20v8M16 13v22M24 7v34M32 15v18M40 20v8" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
       </svg>
+    </div>
+    <div class="play-mode-toggle" role="group" aria-label="Playback collection">
+      <button id="playAllSongsButton" class="play-mode-button active" type="button" aria-pressed="true">ALL</button>
+      <button id="playFavouritesButton" class="play-mode-button" type="button" aria-pressed="false">♥ FAV</button>
     </div>
     <div class="brand-row">
       <div class="brand-actions">
@@ -112,6 +138,18 @@
         <button class="auto-skip-option" type="button" data-value="2">2m</button>
         <button class="auto-skip-option" type="button" data-value="3">3m</button>
         <button class="auto-skip-option" type="button" data-value="4">4m</button>
+      </div>
+    </div>
+    <div id="settingsBackdrop" class="settings-backdrop" role="dialog" aria-modal="true" aria-labelledby="settingsHeading">
+      <div class="settings-panel">
+        <h2 id="settingsHeading">MyRadio Settings</h2>
+        <p class="settings-description">Favourites backup and restore</p>
+        <button id="backupFavouritesButton" class="settings-action" type="button">Backup Favourites</button>
+        <button id="restoreFavouritesButton" class="settings-action" type="button">Restore Favourites</button>
+        <input id="restoreFavouritesFile" type="file" accept="application/json,.json" hidden>
+        <div id="favouritesSettingsStatus" class="settings-status" aria-live="polite">Loading Favourite storage…</div>
+        <p class="settings-note">Favourites are saved on this device only. Backup creates a separate file you can keep safely.</p>
+        <button id="closeSettingsButton" class="settings-action" type="button">Close</button>
       </div>
     </div>
     <div class="subtitle">मेरे पसंदीदा गाने</div>
@@ -159,9 +197,13 @@
     <span id="duration" style="font-size:12px;color:#c8d2f0">0:00</span>
   </div>
 
-  <p id="songTitle" style="color:#c8d2f0;margin-top:16px;font-weight:650;line-height:1.6">
-    गाने लोड हो रहे हैं…
-  </p>
+  <div class="song-title-row">
+    <span aria-hidden="true"></span>
+    <p id="songTitle" style="color:#c8d2f0;font-weight:650;line-height:1.6">
+      गाने लोड हो रहे हैं…
+    </p>
+    <button id="favouriteButton" type="button" aria-label="Add to Favourites" title="Add to Favourites" aria-pressed="false">♡</button>
+  </div>
 
   <audio id="player" preload="none"></audio>
 </main>
@@ -363,6 +405,296 @@ const queueKey = "myradio_queue_" + (accessToken || "no-token");
 const catalogueKey = "myradio_catalogue_" + (accessToken || "no-token");
 const updateBaselineKey = "myradio_update_baseline_" + (accessToken || "no-token");
 
+// Favourites are device-local. IndexedDB is the primary store; Chrome's
+// Persistent Storage request protects it from automatic eviction where granted.
+const favouritesDbName = "MyRadio_Favourites";
+const favouritesStoreName = "collections";
+const favouritesRecordKey = "main";
+const favouritesFallbackKey = "myradio_favourites_fallback_v1";
+const favouritesBackupVersion = 1;
+let favouriteSongs = [];
+let favouriteDb = null;
+let favouriteStorageReady = false;
+let favouriteStorageMode = "loading";
+let favouritePersistenceGranted = false;
+let playbackMode = "all";
+let favouriteRemaining = [];
+let favouriteHistory = [];
+let favouriteHistoryIndex = -1;
+let favouritesReadyPromise = null;
+
+function openFavouritesDatabase() {
+  return new Promise((resolve, reject) => {
+    if (!window.indexedDB) {
+      reject(new Error("IndexedDB is unavailable"));
+      return;
+    }
+    const request = indexedDB.open(favouritesDbName, 1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(favouritesStoreName)) {
+        db.createObjectStore(favouritesStoreName);
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error("Could not open Favourite storage"));
+    request.onblocked = () => reject(new Error("Favourite storage is busy in another tab"));
+  });
+}
+
+function readFavouritesFromDatabase(db) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(favouritesStoreName, "readonly");
+    const request = transaction.objectStore(favouritesStoreName).get(favouritesRecordKey);
+    request.onsuccess = () => resolve(request.result || null);
+    request.onerror = () => reject(request.error || new Error("Could not read Favourites"));
+  });
+}
+
+function writeFavouritesToDatabase(db, record) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(favouritesStoreName, "readwrite");
+    transaction.objectStore(favouritesStoreName).put(record, favouritesRecordKey);
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error || new Error("Could not save Favourites"));
+    transaction.onabort = () => reject(transaction.error || new Error("Favourite save was interrupted"));
+  });
+}
+
+function cleanFavouriteEntries(entries) {
+  if (!Array.isArray(entries)) return [];
+  const seen = new Set();
+  const cleaned = [];
+  for (const entry of entries) {
+    if (!entry || entry.id == null) continue;
+    const id = String(entry.id);
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    cleaned.push({ id, name: String(entry.name || id) });
+  }
+  return cleaned;
+}
+
+function setFavouriteSettingsStatus(message) {
+  const status = document.getElementById("favouritesSettingsStatus");
+  if (status) status.textContent = message;
+}
+
+async function initFavouriteStorage() {
+  if (favouritesReadyPromise) return favouritesReadyPromise;
+  favouritesReadyPromise = (async () => {
+    try {
+      favouriteDb = await openFavouritesDatabase();
+      const savedRecord = await readFavouritesFromDatabase(favouriteDb);
+      favouriteSongs = cleanFavouriteEntries(savedRecord && savedRecord.favourites);
+      favouriteStorageMode = "indexeddb";
+      favouriteStorageReady = true;
+
+      // Migrate the early localStorage fallback once, if IndexedDB is empty.
+      if (!savedRecord) {
+        try {
+          const fallback = JSON.parse(localStorage.getItem(favouritesFallbackKey) || "null");
+          if (fallback && Array.isArray(fallback.favourites)) {
+            favouriteSongs = cleanFavouriteEntries(fallback.favourites);
+            await persistFavourites();
+          }
+        } catch (migrationError) {
+          console.warn("Older Favourite data could not be migrated:", migrationError);
+        }
+      }
+    } catch (error) {
+      console.warn("IndexedDB unavailable; using local browser storage fallback:", error);
+      favouriteStorageMode = "localstorage";
+      try {
+        const fallback = JSON.parse(localStorage.getItem(favouritesFallbackKey) || "null");
+        favouriteSongs = cleanFavouriteEntries(fallback && fallback.favourites);
+      } catch (readError) {
+        favouriteSongs = [];
+      }
+      favouriteStorageReady = true;
+    }
+
+    // This request is automatic and normally does not show a permission prompt.
+    try {
+      if (navigator.storage && navigator.storage.persist) {
+        favouritePersistenceGranted = await navigator.storage.persist();
+      }
+    } catch (error) {
+      favouritePersistenceGranted = false;
+    }
+
+    refreshFavouriteButton();
+    refreshFavouriteSettings();
+    return true;
+  })();
+  return favouritesReadyPromise;
+}
+
+async function persistFavourites() {
+  const record = {
+    version: favouritesBackupVersion,
+    updatedAt: new Date().toISOString(),
+    favourites: cleanFavouriteEntries(favouriteSongs)
+  };
+
+  if (favouriteStorageMode === "indexeddb" && favouriteDb) {
+    await writeFavouritesToDatabase(favouriteDb, record);
+  } else {
+    localStorage.setItem(favouritesFallbackKey, JSON.stringify(record));
+  }
+  refreshFavouriteSettings();
+}
+
+function refreshFavouriteButton() {
+  const button = document.getElementById("favouriteButton");
+  if (!button) return;
+  const currentId = currentSong && currentSong.id != null ? String(currentSong.id) : null;
+  const isFavourite = currentId !== null && favouriteSongs.some(item => item.id === currentId);
+  button.textContent = isFavourite ? "♥" : "♡";
+  button.classList.toggle("is-favourite", isFavourite);
+  button.setAttribute("aria-pressed", String(isFavourite));
+  button.setAttribute("aria-label", isFavourite ? "Remove from Favourites" : "Add to Favourites");
+  button.title = button.getAttribute("aria-label");
+  button.disabled = !currentSong || !favouriteStorageReady;
+}
+
+function refreshPlaybackModeButtons() {
+  const allButton = document.getElementById("playAllSongsButton");
+  const favButton = document.getElementById("playFavouritesButton");
+  if (!allButton || !favButton) return;
+  const isFavourites = playbackMode === "favourites";
+  allButton.classList.toggle("active", !isFavourites);
+  favButton.classList.toggle("active", isFavourites);
+  allButton.setAttribute("aria-pressed", String(!isFavourites));
+  favButton.setAttribute("aria-pressed", String(isFavourites));
+  favButton.disabled = !favouriteStorageReady || favouriteSongs.length === 0;
+}
+
+function refreshFavouriteSettings() {
+  refreshPlaybackModeButtons();
+  const count = favouriteSongs.length;
+  const storageText = favouriteStorageMode === "indexeddb"
+    ? (favouritePersistenceGranted ? "Persistent storage protection is active." : "Chrome storage is in use; automatic-eviction protection was not granted.")
+    : "Using Chrome's local storage fallback.";
+  setFavouriteSettingsStatus(`${count} Favourite song${count === 1 ? "" : "s"}. ${storageText}`);
+}
+
+async function toggleCurrentFavourite() {
+  if (!currentSong || currentSong.id == null || !favouriteStorageReady) return;
+  const id = String(currentSong.id);
+  const index = favouriteSongs.findIndex(item => item.id === id);
+  if (index >= 0) {
+    favouriteSongs.splice(index, 1);
+    if (playbackMode === "favourites") {
+      favouriteRemaining = favouriteRemaining.filter(song => String(song.id) !== id);
+    }
+  } else {
+    favouriteSongs.push({ id, name: currentSong.name || id });
+  }
+  refreshFavouriteButton();
+  refreshFavouriteSettings();
+  try {
+    await persistFavourites();
+    setFavouriteSettingsStatus(`${favouriteSongs.length} Favourite song${favouriteSongs.length === 1 ? "" : "s"}. Saved on this device.`);
+  } catch (error) {
+    console.error("Favourite could not be saved:", error);
+    setFavouriteSettingsStatus("Could not save Favourites. Please try again.");
+  }
+}
+
+function addToFavouriteHistory(song) {
+  if (favouriteHistoryIndex < favouriteHistory.length - 1) {
+    favouriteHistory = favouriteHistory.slice(0, favouriteHistoryIndex + 1);
+  }
+  favouriteHistory.push(song);
+  if (favouriteHistory.length > 100) favouriteHistory.splice(0, favouriteHistory.length - 100);
+  favouriteHistoryIndex = favouriteHistory.length - 1;
+}
+
+function getAvailableFavouriteSongs() {
+  const songMap = new Map(songs.map(song => [String(song.id), song]));
+  return favouriteSongs.map(item => songMap.get(item.id)).filter(Boolean);
+}
+
+function playFavourites() {
+  if (!favouriteStorageReady || !favouriteSongs.length) {
+    setFavouriteSettingsStatus("There are no saved Favourite songs yet.");
+    return;
+  }
+  const available = getAvailableFavouriteSongs();
+  if (!available.length) {
+    setFavouriteSettingsStatus("None of the saved Favourite songs are currently in the Box catalogue. Use Update and try again.");
+    return;
+  }
+  playbackMode = "favourites";
+  refreshPlaybackModeButtons();
+  favouriteRemaining = shuffleSongs(available);
+  favouriteHistory = [];
+  favouriteHistoryIndex = -1;
+  const firstSong = favouriteRemaining.pop();
+  if (!firstSong) return;
+  currentSong = firstSong;
+  addToFavouriteHistory(firstSong);
+  closeSettings();
+  playSong(firstSong);
+}
+
+function exportFavouritesBackup() {
+  const payload = {
+    app: "MyRadio",
+    type: "favourites-backup",
+    version: favouritesBackupVersion,
+    exportedAt: new Date().toISOString(),
+    favourites: cleanFavouriteEntries(favouriteSongs)
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "MyRadio_Favourites.json";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+  setFavouriteSettingsStatus(`Backup prepared: ${favouriteSongs.length} Favourite song${favouriteSongs.length === 1 ? "" : "s"}. Check your Downloads.`);
+}
+
+async function importFavouritesBackup(file) {
+  if (!file) return;
+  try {
+    const parsed = JSON.parse(await file.text());
+    if (!parsed || parsed.app !== "MyRadio" || parsed.type !== "favourites-backup" || parsed.version !== favouritesBackupVersion || !Array.isArray(parsed.favourites)) {
+      throw new Error("This is not a supported MyRadio Favourites backup file.");
+    }
+    const imported = cleanFavouriteEntries(parsed.favourites);
+    const confirmed = window.confirm(`Replace the current ${favouriteSongs.length} Favourites with ${imported.length} songs from this backup?`);
+    if (!confirmed) return;
+    favouriteSongs = imported;
+    if (playbackMode === "favourites") {
+      playbackMode = "all";
+      refreshPlaybackModeButtons();
+      favouriteRemaining = [];
+      favouriteHistory = [];
+      favouriteHistoryIndex = -1;
+    }
+    await persistFavourites();
+    refreshFavouriteButton();
+    setFavouriteSettingsStatus(`Restored ${favouriteSongs.length} Favourite song${favouriteSongs.length === 1 ? "" : "s"}.`);
+  } catch (error) {
+    console.error("Favourite restore failed:", error);
+    setFavouriteSettingsStatus(error.message || "Could not restore this backup file.");
+  }
+}
+
+function openSettings() {
+  document.getElementById("settingsBackdrop").classList.add("open");
+  refreshFavouriteSettings();
+}
+
+function closeSettings() {
+  document.getElementById("settingsBackdrop").classList.remove("open");
+}
+
 function shuffleSongs(list) {
   const result = [...list];
   for (let i = result.length - 1; i > 0; i--) {
@@ -505,6 +837,37 @@ if (
 
 
 function playNext() {
+  if (playbackMode === "favourites") {
+    if (favouriteHistoryIndex < favouriteHistory.length - 1) {
+      favouriteHistoryIndex++;
+      currentSong = favouriteHistory[favouriteHistoryIndex];
+      playSong(currentSong);
+      return;
+    }
+
+    let availableFavourites = getAvailableFavouriteSongs();
+    if (!availableFavourites.length) {
+      playbackMode = "all";
+      favouriteRemaining = [];
+      favouriteHistory = [];
+      favouriteHistoryIndex = -1;
+      setFavouriteSettingsStatus("No playable Favourite songs remain. Returning to the full collection.");
+      playNext();
+      return;
+    }
+    if (!favouriteRemaining.length) {
+      favouriteRemaining = shuffleSongs(availableFavourites.filter(song =>
+        availableFavourites.length === 1 || !currentSong || String(song.id) !== String(currentSong.id)
+      ));
+      if (!favouriteRemaining.length) favouriteRemaining = shuffleSongs(availableFavourites);
+    }
+    currentSong = favouriteRemaining.pop();
+    if (!currentSong) return;
+    addToFavouriteHistory(currentSong);
+    playSong(currentSong);
+    return;
+  }
+
   // If we previously went back, move forward in history first.
   if (historyIndex < songHistory.length - 1) {
     historyIndex++;
@@ -535,6 +898,7 @@ function playSong(song) {
   const requestId = ++playbackRequestId;
   autoSkipTriggered = false;
   songTitle.textContent = song.name.replace(/\.mp3$/i, "");
+  refreshFavouriteButton();
 
   if ("mediaSession" in navigator) {
     navigator.mediaSession.metadata = new MediaMetadata({
@@ -613,6 +977,7 @@ function formatTime(seconds) {
 }
 
 function saveQueue() {
+  if (playbackMode === "favourites") return;
   try {
     localStorage.setItem(queueKey, JSON.stringify({
       allIds: songs.map(song => String(song.id)).sort(),
@@ -629,6 +994,23 @@ function saveQueue() {
 
 const shuffleButton = document.getElementById("shuffleButton");
 shuffleButton.addEventListener("click", () => {
+  if (playbackMode === "favourites") {
+    const favouriteCandidates = getAvailableFavouriteSongs().filter(song =>
+      !currentSong || String(song.id) !== String(currentSong.id)
+    );
+    if (!favouriteCandidates.length) return;
+    favouriteRemaining = shuffleSongs(favouriteCandidates);
+    const nextFavourite = favouriteRemaining.pop();
+    if (!nextFavourite) return;
+    addToFavouriteHistory(nextFavourite);
+    currentSong = nextFavourite;
+    shuffleButton.classList.remove("is-shuffling");
+    void shuffleButton.offsetWidth;
+    shuffleButton.classList.add("is-shuffling");
+    window.setTimeout(() => shuffleButton.classList.remove("is-shuffling"), 650);
+    playSong(currentSong);
+    return;
+  }
   if (!songs.length) return;
 
   // Choose a different song immediately, then keep the rest in a fresh random queue.
@@ -785,8 +1167,16 @@ progress.addEventListener("input", () => {
 });
 
 document.getElementById("previousButton").addEventListener("click", () => {
-  // Always locate the currently playing song's latest position in history.
-  // A song may appear more than once after the shuffle queue cycles.
+  if (playbackMode === "favourites") {
+    if (favouriteHistoryIndex <= 0) return;
+    favouriteHistoryIndex--;
+    currentSong = favouriteHistory[favouriteHistoryIndex];
+    player.pause();
+    playSong(currentSong);
+    return;
+  }
+
+  // Original full-collection Previous behaviour.
   if (!songHistory.length) return;
 
   const currentId = currentSong && currentSong.id != null
@@ -797,7 +1187,6 @@ document.getElementById("previousButton").addEventListener("click", () => {
     ? -1
     : songHistory.map(song => String(song.id)).lastIndexOf(currentId);
 
-  // Fall back to the saved pointer only if the current song is not in history.
   if (currentIndex < 0 && Number.isInteger(historyIndex)) {
     currentIndex = historyIndex;
   }
@@ -826,27 +1215,12 @@ document.getElementById("exitButton").addEventListener("click", (event) => {
   event.stopPropagation();
   player.pause();
 
-  // Non-Android (PC etc.): close the tab if allowed, else go back a page.
-  if (!/Android/i.test(navigator.userAgent)) {
-    window.close();
-    window.setTimeout(() => { window.history.back(); }, 300);
-    return;
-  }
-
-  // Android: bring WhatsApp to the front FIRST, then close this Chrome tab
-  // while it is in the background (so the user is not left inside Chrome).
-  let tabClosed = false;
-  const closeTab = () => {
-    if (tabClosed) return;
-    tabClosed = true;
-    window.close();
-  };
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) closeTab();
-  });
-  window.location.href = "intent://send/#Intent;scheme=whatsapp;package=com.whatsapp;end";
-  // Fallback if WhatsApp could not be opened: just close the tab.
-  window.setTimeout(closeTab, 1500);
+  // Restore the original behaviour: close if Chrome permits it;
+  // otherwise return to the previous page in this tab.
+  window.close();
+  window.setTimeout(() => {
+    window.history.back();
+  }, 300);
 });
   player.addEventListener("error", () => {
   console.error("Audio element error:", player.error);
@@ -858,7 +1232,49 @@ player.addEventListener("play", () => {
   starting = false;
 });
 
-startRadio();
+// Favourite and Settings controls.
+document.getElementById("favouriteButton").addEventListener("click", toggleCurrentFavourite);
+document.getElementById("settingsButton").addEventListener("click", openSettings);
+document.getElementById("closeSettingsButton").addEventListener("click", closeSettings);
+document.getElementById("settingsBackdrop").addEventListener("click", event => {
+  if (event.target.id === "settingsBackdrop") closeSettings();
+});
+document.getElementById("playFavouritesButton").addEventListener("click", playFavourites);
+document.getElementById("playAllSongsButton").addEventListener("click", () => {
+  if (playbackMode === "all") return;
+  playbackMode = "all";
+  refreshPlaybackModeButtons();
+  favouriteRemaining = [];
+  favouriteHistory = [];
+  favouriteHistoryIndex = -1;
+  if (songs.length) {
+    player.pause();
+    playNext();
+  }
+});
+document.getElementById("backupFavouritesButton").addEventListener("click", () => {
+  if (!favouriteStorageReady) {
+    setFavouriteSettingsStatus("Favourite storage is still loading. Please try again.");
+    return;
+  }
+  exportFavouritesBackup();
+});
+document.getElementById("restoreFavouritesButton").addEventListener("click", () => {
+  document.getElementById("restoreFavouritesFile").click();
+});
+document.getElementById("restoreFavouritesFile").addEventListener("change", async event => {
+  const file = event.target.files && event.target.files[0];
+  await importFavouritesBackup(file);
+  event.target.value = "";
+});
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") closeSettings();
+});
+
+initFavouriteStorage().finally(() => {
+  refreshFavouriteButton();
+  startRadio();
+});
 </script>
 
 </body>
