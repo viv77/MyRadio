@@ -1312,6 +1312,14 @@ updateButton.addEventListener("click", async () => {
     const updateCount = document.getElementById("updateCount");
     updateCount.textContent = updateCountText;
     updateCount.classList.add("visible");
+
+    // If Update discovers new Box songs, give them a 24-hour listening
+    // window at the front of the queue. Locking Shuffle prevents the user
+    // from replacing that priority queue during this period.
+    if (newSongs.length > 0) {
+      startActionCooldown("shuffle");
+    }
+
     updateSucceeded = true;
     window.clearTimeout(window.myRadioUpdateCountTimer);
     window.myRadioUpdateCountTimer = window.setTimeout(() => {
