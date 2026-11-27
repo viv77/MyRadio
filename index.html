@@ -94,6 +94,10 @@
     .settings-backdrop { position:fixed; inset:0; z-index:1000; display:none; place-items:center; padding:16px; background:#050914c9; }
     .settings-backdrop.open { display:grid; }
     .settings-panel { width:min(100%,360px); max-height:min(88svh,620px); overflow:auto; padding:20px; border:1px solid #536080; border-radius:20px; background:#18223a; box-shadow:0 18px 55px #000b; text-align:left; }
+    .settings-panel { position:relative; padding-top:24px; }
+    .settings-panel h2 { margin:0 0 14px; }
+    .settings-close { position:absolute; top:9px; right:11px; width:30px; height:30px; border:0; border-radius:50%; background:transparent; color:#dce5ff; font-size:25px; line-height:1; cursor:pointer; }
+    .settings-status[hidden] { display:none !important; }
     .settings-panel h2 { margin:0 0 5px; font-size:1.25rem; text-align:center; }
     .settings-description { margin:0 0 15px; color:#c8d2f0; font-size:.86rem; text-align:center; }
     .settings-status { min-height:20px; margin:10px 0; color:#c8d2f0; font-size:.82rem; text-align:center; overflow-wrap:anywhere; }
@@ -149,12 +153,12 @@
     </div>
     <div id="settingsBackdrop" class="settings-backdrop" role="dialog" aria-modal="true" aria-labelledby="settingsHeading">
       <div class="settings-panel">
-        <h2 id="settingsHeading">MyRadio Settings</h2>
-        <button id="backupFavouritesButton" class="settings-action" type="button">Backup Favourites</button>
-        <button id="restoreFavouritesButton" class="settings-action" type="button">Restore Favourites</button>
+        <button id="closeSettingsButton" class="settings-close" type="button" aria-label="Close Settings" title="Close">×</button>
+        <h2 id="settingsHeading">Favourites</h2>
+        <button id="backupFavouritesButton" class="settings-action" type="button">Backup</button>
+        <button id="restoreFavouritesButton" class="settings-action" type="button">Restore</button>
         <input id="restoreFavouritesFile" type="file" accept="application/json,.json" hidden>
-        <div id="favouritesSettingsStatus" class="settings-status" aria-live="polite">0 Favourite songs</div>
-        <button id="closeSettingsButton" class="settings-action" type="button">Close</button>
+        <div id="favouritesSettingsStatus" class="settings-status" aria-live="polite" hidden></div>
       </div>
     </div>
     <div class="subtitle">मेरे पसंदीदा गाने</div>
@@ -641,7 +645,39 @@ function playFavourites() {
   playSong(firstSong);
 }
 
-function exportFavouritesBackup() {
+const favouritesBackupHandleKey = "backupFileHandle";
+const favouritesRestoreHandleKey = "restoreFileHandle";
+
+async function getRememberedFileHandle(key) {
+  if (!favouriteDb) return null;
+  return new Promise((resolve, reject) => {
+    const tx = favouriteDb.transaction(favouritesStoreName, "readonly");
+    const request = tx.objectStore(favouritesStoreName).get(key);
+    request.onsuccess = () => resolve(request.result || null);
+    request.onerror = () => reject(request.error || new Error("Could not read saved file permission"));
+  });
+}
+
+async function saveRememberedFileHandle(key, handle) {
+  if (!favouriteDb) return;
+  return new Promise((resolve, reject) => {
+    const tx = favouriteDb.transaction(favouritesStoreName, "readwrite");
+    tx.objectStore(favouritesStoreName).put(handle, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error || new Error("Could not remember the selected file"));
+  });
+}
+
+async function ensureFileHandlePermission(handle, mode) {
+  if (!handle) return false;
+  let permission = await handle.queryPermission({ mode });
+  if (permission !== "granted") {
+    permission = await handle.requestPermission({ mode });
+  }
+  return permission === "granted";
+}
+
+function buildFavouritesBackupBlob() {
   const payload = {
     app: "MyRadio",
     type: "favourites-backup",
@@ -649,7 +685,41 @@ function exportFavouritesBackup() {
     exportedAt: new Date().toISOString(),
     favourites: cleanFavouriteEntries(favouriteSongs)
   };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  return new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+}
+
+async function exportFavouritesBackup() {
+  if (!favouriteStorageReady) return;
+  const blob = buildFavouritesBackupBlob();
+
+  // When the browser supports the File System Access API, remember the chosen
+  // backup file and overwrite that same file on later backups without a
+  // repeated "Download again?" prompt.
+  if (window.showSaveFilePicker) {
+    try {
+      let handle = await getRememberedFileHandle(favouritesBackupHandleKey);
+      if (handle && !(await ensureFileHandlePermission(handle, "readwrite"))) handle = null;
+
+      if (!handle) {
+        handle = await window.showSaveFilePicker({
+          suggestedName: "MyRadio_Favourites.json",
+          types: [{ description: "MyRadio Favourites backup", accept: { "application/json": [".json"] } }]
+        });
+        await saveRememberedFileHandle(favouritesBackupHandleKey, handle);
+      }
+
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      return;
+    } catch (error) {
+      if (error && error.name === "AbortError") return;
+      console.warn("Remembered backup file unavailable; using browser download fallback.", error);
+    }
+  }
+
+  // Compatibility fallback for browsers without persistent file handles.
+  // Browser download managers may still ask whether to download the same name again.
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
@@ -658,43 +728,93 @@ function exportFavouritesBackup() {
   link.click();
   link.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1500);
-  setFavouriteSettingsStatus(`Backup prepared: ${favouriteSongs.length} Favourite song${favouriteSongs.length === 1 ? "" : "s"}. Check your Downloads.`);
+}
+
+async function readAndImportFavouritesFile(file) {
+  if (!file) return;
+  const parsed = JSON.parse(await file.text());
+  if (!parsed || parsed.app !== "MyRadio" || parsed.type !== "favourites-backup" || parsed.version !== favouritesBackupVersion || !Array.isArray(parsed.favourites)) {
+    throw new Error("This is not a supported MyRadio Favourites backup file.");
+  }
+  const imported = cleanFavouriteEntries(parsed.favourites);
+  const confirmed = window.confirm(`Replace the current ${favouriteSongs.length} Favourites with ${imported.length} songs from this backup?`);
+  if (!confirmed) return;
+  favouriteSongs = imported;
+  if (playbackMode === "favourites") {
+    playbackMode = "all";
+    refreshPlaybackModeButtons();
+    favouriteRemaining = [];
+    favouriteHistory = [];
+    favouriteHistoryIndex = -1;
+  }
+  await persistFavourites();
+  refreshFavouriteButton();
 }
 
 async function importFavouritesBackup(file) {
-  if (!file) return;
   try {
-    const parsed = JSON.parse(await file.text());
-    if (!parsed || parsed.app !== "MyRadio" || parsed.type !== "favourites-backup" || parsed.version !== favouritesBackupVersion || !Array.isArray(parsed.favourites)) {
-      throw new Error("This is not a supported MyRadio Favourites backup file.");
-    }
-    const imported = cleanFavouriteEntries(parsed.favourites);
-    const confirmed = window.confirm(`Replace the current ${favouriteSongs.length} Favourites with ${imported.length} songs from this backup?`);
-    if (!confirmed) return;
-    favouriteSongs = imported;
-    if (playbackMode === "favourites") {
-      playbackMode = "all";
-      refreshPlaybackModeButtons();
-      favouriteRemaining = [];
-      favouriteHistory = [];
-      favouriteHistoryIndex = -1;
-    }
-    await persistFavourites();
-    refreshFavouriteButton();
-    setFavouriteSettingsStatus(`Restored ${favouriteSongs.length} Favourite song${favouriteSongs.length === 1 ? "" : "s"}.`);
+    await readAndImportFavouritesFile(file);
   } catch (error) {
     console.error("Favourite restore failed:", error);
-    setFavouriteSettingsStatus(error.message || "Could not restore this backup file.");
+    window.alert(error.message || "Could not restore this backup file.");
   }
 }
 
-function openSettings() {
-  document.getElementById("settingsBackdrop").classList.add("open");
-  refreshFavouriteSettings();
+async function restoreFavouritesFromRememberedFile() {
+  if (!favouriteStorageReady) return;
+  if (window.showOpenFilePicker) {
+    try {
+      let handle = await getRememberedFileHandle(favouritesRestoreHandleKey);
+      if (handle && !(await ensureFileHandlePermission(handle, "read"))) handle = null;
+
+      if (!handle) {
+        const handles = await window.showOpenFilePicker({
+          multiple: false,
+          types: [{ description: "MyRadio Favourites backup", accept: { "application/json": [".json"] } }]
+        });
+        if (!handles || !handles[0]) return;
+        handle = handles[0];
+        await saveRememberedFileHandle(favouritesRestoreHandleKey, handle);
+      }
+
+      const file = await handle.getFile();
+      await readAndImportFavouritesFile(file);
+      return;
+    } catch (error) {
+      if (error && error.name === "AbortError") return;
+      console.warn("Remembered restore file unavailable; opening file picker fallback.", error);
+    }
+  }
+  // Older/mobile browsers may not support persistent file handles; ask once per restore.
+  document.getElementById("restoreFavouritesFile").click();
 }
 
-function closeSettings() {
-  document.getElementById("settingsBackdrop").classList.remove("open");
+function openSettings() {
+  const backdrop = document.getElementById("settingsBackdrop");
+  if (backdrop.classList.contains("open")) return;
+  backdrop.classList.add("open");
+  refreshFavouriteSettings();
+  // Create a history entry so Android/Chrome Back dismisses Settings first.
+  try {
+    history.pushState({ myRadioSettingsOpen: true }, "", location.href);
+    settingsHistoryEntryOpen = true;
+  } catch (_) {
+    settingsHistoryEntryOpen = false;
+  }
+}
+
+let settingsHistoryEntryOpen = false;
+
+function closeSettings(fromPopState = false) {
+  const backdrop = document.getElementById("settingsBackdrop");
+  if (!backdrop.classList.contains("open")) return;
+  backdrop.classList.remove("open");
+  if (!fromPopState && settingsHistoryEntryOpen) {
+    settingsHistoryEntryOpen = false;
+    history.back();
+  } else {
+    settingsHistoryEntryOpen = false;
+  }
 }
 
 function shuffleSongs(list) {
@@ -1261,9 +1381,7 @@ document.getElementById("backupFavouritesButton").addEventListener("click", () =
   }
   exportFavouritesBackup();
 });
-document.getElementById("restoreFavouritesButton").addEventListener("click", () => {
-  document.getElementById("restoreFavouritesFile").click();
-});
+document.getElementById("restoreFavouritesButton").addEventListener("click", restoreFavouritesFromRememberedFile);
 document.getElementById("restoreFavouritesFile").addEventListener("change", async event => {
   const file = event.target.files && event.target.files[0];
   await importFavouritesBackup(file);
@@ -1271,6 +1389,10 @@ document.getElementById("restoreFavouritesFile").addEventListener("change", asyn
 });
 document.addEventListener("keydown", event => {
   if (event.key === "Escape") closeSettings();
+});
+window.addEventListener("popstate", () => {
+  const backdrop = document.getElementById("settingsBackdrop");
+  if (backdrop && backdrop.classList.contains("open")) closeSettings(true);
 });
 
 initFavouriteStorage().finally(() => {
