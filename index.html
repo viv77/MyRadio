@@ -42,7 +42,8 @@
     .header-action svg { width:21px; height:21px; display:block; }
     .header-action:hover { background:#e8edff; }
     .header-action:focus-visible { outline:2px solid #a18bff; outline-offset:2px; }
-    .header-action:disabled { opacity:.75; cursor:wait; }
+    .header-action:disabled { opacity:.42; cursor:not-allowed; }
+    .header-action.is-updating:disabled { opacity:.75; cursor:wait; }
     .shuffle-action.is-shuffling svg { animation:shuffleTurn .55s ease-in-out; }
     .shuffle-action.is-shuffling { background:#cfd8ff; box-shadow:0 0 0 3px #a18bff55; }
     @keyframes shuffleTurn { from { transform:rotate(0deg) scale(1); } to { transform:rotate(360deg) scale(1.08); } }
@@ -839,6 +840,78 @@ function addToSongHistory(song) {
   historyIndex = songHistory.length - 1;
 }
 
+// IDs played in the active mode up to the current position, plus the current
+// song. This keeps a manual reshuffle from bringing recent tracks straight back.
+function getRecentPlayedIds(history, index, current) {
+  const played = Number.isInteger(index) && index >= 0
+    ? history.slice(0, index + 1)
+    : [];
+  const recent = played.slice(-100);
+  const ids = new Set(recent.map(song => String(song.id)));
+  if (current && current.id != null) ids.add(String(current.id));
+  return ids;
+}
+
+function animateShuffleButton() {
+  shuffleButton.classList.remove("is-shuffling");
+  void shuffleButton.offsetWidth;
+  shuffleButton.classList.add("is-shuffling");
+  window.setTimeout(() => shuffleButton.classList.remove("is-shuffling"), 650);
+}
+
+// Update and Shuffle each have an independent, device-local rolling 24-hour lock.
+// The lock survives page reloads and browser restarts.
+const actionCooldownMs = 24 * 60 * 60 * 1000;
+const updateCooldownKey = "myradio_update_cooldown_" + (accessToken || "no-token");
+const shuffleCooldownKey = "myradio_shuffle_cooldown_" + (accessToken || "no-token");
+const cooldownTimers = { update: null, shuffle: null };
+
+function cooldownExpiry(action) {
+  const key = action === "update" ? updateCooldownKey : shuffleCooldownKey;
+  try {
+    const pressedAt = Number(localStorage.getItem(key));
+    return Number.isFinite(pressedAt) && pressedAt > 0 ? pressedAt + actionCooldownMs : 0;
+  } catch (error) {
+    return 0;
+  }
+}
+
+function refreshActionCooldown(action) {
+  const button = document.getElementById(action === "update" ? "updateButton" : "shuffleButton");
+  if (!button) return;
+  if (cooldownTimers[action]) window.clearTimeout(cooldownTimers[action]);
+  const expiresAt = cooldownExpiry(action);
+  const remainingMs = expiresAt - Date.now();
+  const isLocked = remainingMs > 0;
+  if (action === "update") {
+    button.disabled = button.classList.contains("is-updating") || isLocked;
+  } else {
+    button.disabled = isLocked;
+  }
+  const baseTitle = action === "update" ? "Update song list" : "Reshuffle remaining songs";
+  button.title = isLocked ? `${baseTitle} — locked for ${Math.ceil(remainingMs / 3600000)} more hour(s)` : baseTitle;
+  if (isLocked) {
+    cooldownTimers[action] = window.setTimeout(() => refreshActionCooldown(action), remainingMs + 50);
+  }
+}
+
+function startActionCooldown(action) {
+  const key = action === "update" ? updateCooldownKey : shuffleCooldownKey;
+  try {
+    localStorage.setItem(key, String(Date.now()));
+  } catch (error) {
+    console.warn(`${action} cooldown could not be saved:`, error);
+  }
+  refreshActionCooldown(action);
+}
+
+refreshActionCooldown("update");
+refreshActionCooldown("shuffle");
+window.addEventListener("storage", event => {
+  if (event.key === updateCooldownKey) refreshActionCooldown("update");
+  if (event.key === shuffleCooldownKey) refreshActionCooldown("shuffle");
+});
+
 async function startRadio() {
   if (starting) return;
   starting = true;
@@ -999,9 +1072,14 @@ function playNext() {
     return;
   }
 
-  // Select a new song from the shuffle queue.
+  // When a cycle is exhausted, begin a fresh shuffled cycle without
+  // immediately repeating the song that just finished (unless it is the
+  // only song available).
   if (!remaining.length) {
-    remaining = shuffleSongs(songs);
+    const freshCycle = songs.filter(song =>
+      songs.length === 1 || !currentSong || String(song.id) !== String(currentSong.id)
+    );
+    remaining = shuffleSongs(freshCycle.length ? freshCycle : songs);
   }
 
   currentSong = remaining.pop();
@@ -1116,55 +1194,44 @@ function saveQueue() {
 
 const shuffleButton = document.getElementById("shuffleButton");
 shuffleButton.addEventListener("click", () => {
+  if (cooldownExpiry("shuffle") > Date.now()) return;
   if (playbackMode === "favourites") {
-    const favouriteCandidates = getAvailableFavouriteSongs().filter(song =>
-      !currentSong || String(song.id) !== String(currentSong.id)
-    );
-    if (!favouriteCandidates.length) return;
-    favouriteRemaining = shuffleSongs(favouriteCandidates);
-    const nextFavourite = favouriteRemaining.pop();
-    if (!nextFavourite) return;
-    addToFavouriteHistory(nextFavourite);
-    currentSong = nextFavourite;
-    shuffleButton.classList.remove("is-shuffling");
-    void shuffleButton.offsetWidth;
-    shuffleButton.classList.add("is-shuffling");
-    window.setTimeout(() => shuffleButton.classList.remove("is-shuffling"), 650);
-    playSong(currentSong);
-    return;
-  }
-  if (!songs.length) return;
+    const available = getAvailableFavouriteSongs();
+    if (!available.length) return;
 
-  // Choose a different song immediately, then keep the rest in a fresh random queue.
-  const candidates = songs.filter(song =>
-    !currentSong || String(song.id) !== String(currentSong.id)
-  );
+    // For a large Favourite collection, avoid the last 100 played tracks.
+    // For a small collection, exclude only the current track so the queue
+    // does not become unnecessarily empty.
+    const excludedIds = available.length > 100
+      ? getRecentPlayedIds(favouriteHistory, favouriteHistoryIndex, currentSong)
+      : new Set(currentSong && currentSong.id != null ? [String(currentSong.id)] : []);
+    const candidates = available.filter(song => !excludedIds.has(String(song.id)));
+    if (!candidates.length) return;
+
+    favouriteRemaining = shuffleSongs(candidates);
+    animateShuffleButton();
+    startActionCooldown("shuffle");
+    return; // Keep the current song playing; the shuffled queue is for next.
+  }
+
+  if (!songs.length) return;
+  const excludedIds = getRecentPlayedIds(songHistory, historyIndex, currentSong);
+  const candidates = songs.filter(song => !excludedIds.has(String(song.id)));
   if (!candidates.length) return;
 
   remaining = shuffleSongs(candidates);
-  const nextSong = remaining.pop();
-  if (!nextSong) return;
-
-  // Keep Back navigation sensible after a reshuffle.
-  addToSongHistory(nextSong);
-  currentSong = nextSong;
-
   saveQueue();
-
-  // Visible confirmation: brief icon rotation and immediate title/song change.
-  shuffleButton.classList.remove("is-shuffling");
-  void shuffleButton.offsetWidth;
-  shuffleButton.classList.add("is-shuffling");
-  window.setTimeout(() => shuffleButton.classList.remove("is-shuffling"), 650);
-
-  playSong(currentSong);
+  animateShuffleButton();
+  startActionCooldown("shuffle");
+  // Shuffle changes only the remaining queue, never the current song.
 });
 
 const updateButton = document.getElementById("updateButton");
 updateButton.addEventListener("click", async () => {
-  if (updateButton.classList.contains("is-updating")) return;
+  if (updateButton.classList.contains("is-updating") || cooldownExpiry("update") > Date.now()) return;
   updateButton.classList.add("is-updating");
   updateButton.disabled = true;
+  let updateSucceeded = false;
 
   try {
     const deviceName = await getDeviceName();
@@ -1210,13 +1277,42 @@ updateButton.addEventListener("click", async () => {
     } catch (storageError) {
       console.warn("Updated catalogue could not be fully cached locally:", storageError);
     }
-    remaining = shuffleSongs(songs.filter(
-      song => !currentSong || String(song.id) !== String(currentSong.id)
-    ));
+    // Preserve the existing unplayed order. Newly added tracks are shuffled
+    // among themselves and placed at the front (the queue's next items are
+    // popped from the end), while deleted tracks are removed.
+    const refreshedSongMap = new Map(songs.map(song => [String(song.id), song]));
+    const newSongs = refreshedSongs.filter(song => !previousIds.has(String(song.id)));
+    const newSongIds = new Set(newSongs.map(song => String(song.id)));
+    const preservedRemaining = remaining
+      .filter(song => !newSongIds.has(String(song.id)))
+      .map(song => refreshedSongMap.get(String(song.id)))
+      .filter(Boolean);
+    remaining = [...preservedRemaining, ...shuffleSongs(newSongs)];
     saveQueue();
+
+    // Reconcile the Favourite queue with the refreshed catalogue too. Newly
+    // added Box tracks enter this queue only if the user had already favourited
+    // their IDs (for example, a previously unavailable Favourite returning).
+    const availableFavouriteIds = new Set(getAvailableFavouriteSongs().map(song => String(song.id)));
+    favouriteRemaining = favouriteRemaining
+      .filter(song => availableFavouriteIds.has(String(song.id)))
+      .map(song => refreshedSongMap.get(String(song.id)))
+      .filter(Boolean);
+    const queuedFavouriteIds = new Set(favouriteRemaining.map(song => String(song.id)));
+    const recentFavouriteIds = getRecentPlayedIds(favouriteHistory, favouriteHistoryIndex, currentSong);
+    const newlyAvailableFavourites = newSongs.filter(song =>
+      availableFavouriteIds.has(String(song.id)) &&
+      !queuedFavouriteIds.has(String(song.id)) &&
+      !recentFavouriteIds.has(String(song.id)) &&
+      (!currentSong || String(song.id) !== String(currentSong.id))
+    );
+    if (newlyAvailableFavourites.length) {
+      favouriteRemaining = [...favouriteRemaining, ...shuffleSongs(newlyAvailableFavourites)];
+    }
     const updateCount = document.getElementById("updateCount");
     updateCount.textContent = updateCountText;
     updateCount.classList.add("visible");
+    updateSucceeded = true;
     window.clearTimeout(window.myRadioUpdateCountTimer);
     window.myRadioUpdateCountTimer = window.setTimeout(() => {
       updateCount.classList.remove("visible");
@@ -1227,7 +1323,8 @@ updateButton.addEventListener("click", async () => {
     songTitle.textContent = "गानों की सूची अपडेट नहीं हो सकी।";
   } finally {
     updateButton.classList.remove("is-updating");
-    updateButton.disabled = false;
+    if (updateSucceeded) startActionCooldown("update");
+    else refreshActionCooldown("update");
   }
 });
 
